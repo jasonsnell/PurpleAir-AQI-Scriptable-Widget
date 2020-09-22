@@ -91,7 +91,7 @@ function computePM(data) {
   // Apply EPA draft adjustment for wood smoke and PurpleAir
   // from https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=349513&Lab=CEMM&simplesearch=0&showcriteria=2&sortby=pubDate&timstype=&datebeginpublishedpresented=08/25/2018
 
-  return ((0.524 * dataAverage) - (.0085 * hum) + 5.71);
+  return ((0.52 * dataAverage) - (.085 * hum) + 5.71);
 }
 
 // Function to get AQI number from PPM reading
