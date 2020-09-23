@@ -35,6 +35,7 @@ const levelAttributes = [
     startColor: "9e2043",
     endColor: "7e0023",
     textColor: "ffffff",
+    textSize: "20",
   },
   {
     threshold: 200,
@@ -42,13 +43,15 @@ const levelAttributes = [
     startColor: "8f3f97",
     endColor: "6f1f77",
     textColor: "ffffff",
-  },
+    textSize: 15,
+ },
   {
     threshold: 150,
     label: "Unhealthy",
     startColor: "FF3D3D",
     endColor: "D60000",
     textColor: "000000",
+    textSize: 20,
   },
   {
     threshold: 100,
@@ -56,6 +59,7 @@ const levelAttributes = [
     startColor: "FFA63D",
     endColor: "D67200",
     textColor: "000000",
+    textSize: 15,
   },
   {
     threshold: 50,
@@ -63,6 +67,7 @@ const levelAttributes = [
     startColor: "ffff00",
     endColor: "cccc00",
     textColor: "000000",
+    textSize: 20,
   },
   {
     threshold: 0,
@@ -70,6 +75,7 @@ const levelAttributes = [
     startColor: "00e400",
     endColor: "00bb00",
     textColor: "000000",
+    textSize: 20,
   },
 ];
 
@@ -131,6 +137,7 @@ function calculateLevel(aqi) {
     label: "fine",
     startColor: "white",
     endColor: "white",
+    textSize: 10,
   };
 
   let level = parseInt(aqi, 10) || 0;
@@ -197,11 +204,11 @@ async function run() {
 
     let content = wg.addText(aqiText);
     content.textColor = textColor;
-    content.font = Font.semiboldRoundedSystemFont(45);
+    content.font = Font.semiboldRoundedSystemFont(30);
 
     let wordLevel = wg.addText(level.label);
     wordLevel.textColor = textColor;
-    wordLevel.font = Font.boldSystemFont(15);
+    wordLevel.font = Font.boldSystemFont(level.textSize);
 
     wg.addSpacer(10);
 
