@@ -1,14 +1,15 @@
-// widget code by Jason Snell <jsnell@sixcolors.com>
-// based on code by Matt Silverlock
-// gradient routine contributed by Rob Silverii
-// pretty formatting and functioning by Adam Lickel
+// Variables used by Scriptable.
+// These must be at the very top of the file. Do not edit.
+// icon-color: purple; icon-glyph: tree;
+// This code is from <https://github.com/jasonsnell/PurpleAir-AQI-Scriptable-Widget>
+// By Jason Snell based on code by Matt Silverlock, Rob Silverii, Adam Lickel
 
 const API_URL = "https://www.purpleair.com/json?show=";
 
 // Find a nearby PurpleAir sensor ID via https://fire.airnow.gov/
 // Click a sensor near your location: the ID is the trailing integers
 // https://www.purpleair.com/json has all sensors by location & ID.
-let SENSOR_ID = args.widgetParameter || "34663";
+let SENSOR_ID = args.widgetParameter || "69229";
 
 // Fetch content from PurpleAir
 async function getSensorData(url, id) {
@@ -35,7 +36,6 @@ const levelAttributes = [
     startColor: "9e2043",
     endColor: "7e0023",
     textColor: "ffffff",
-    textSize: "20",
   },
   {
     threshold: 200,
@@ -43,7 +43,6 @@ const levelAttributes = [
     startColor: "8f3f97",
     endColor: "6f1f77",
     textColor: "ffffff",
-    textSize: 15,
  },
   {
     threshold: 150,
@@ -51,7 +50,6 @@ const levelAttributes = [
     startColor: "FF3D3D",
     endColor: "D60000",
     textColor: "000000",
-    textSize: 20,
   },
   {
     threshold: 100,
@@ -59,7 +57,6 @@ const levelAttributes = [
     startColor: "FFA63D",
     endColor: "D67200",
     textColor: "000000",
-    textSize: 15,
   },
   {
     threshold: 50,
@@ -67,15 +64,13 @@ const levelAttributes = [
     startColor: "ffff00",
     endColor: "cccc00",
     textColor: "000000",
-    textSize: 20,
   },
   {
-    threshold: 0,
+    threshold: -20,
     label: "Good",
-    startColor: "00e400",
-    endColor: "00bb00",
+    startColor: "009900",
+    endColor: "007700",
     textColor: "000000",
-    textSize: 20,
   },
 ];
 
@@ -133,11 +128,11 @@ function calcAQI(Cp, Ih, Il, BPh, BPl) {
 // https://cfpub.epa.gov/airnow/index.cfm?action=aqibasics.aqi#unh
 function calculateLevel(aqi) {
   let res = {
-    level: "OK",
-    label: "fine",
+    level: "0",
+    label: "Fine?",
     startColor: "white",
     endColor: "white",
-    textSize: 10,
+    textColor: "black",
   };
 
   let level = parseInt(aqi, 10) || 0;
@@ -208,7 +203,8 @@ async function run() {
 
     let wordLevel = wg.addText(level.label);
     wordLevel.textColor = textColor;
-    wordLevel.font = Font.boldSystemFont(level.textSize);
+    wordLevel.font = Font.boldSystemFont(25);
+    wordLevel.minimumScaleFactor = 0.3
 
     wg.addSpacer(10);
 
