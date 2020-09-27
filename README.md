@@ -1,10 +1,10 @@
 # PurpleAir-AQI-Scriptable-Widget
 
-By Jason Snell - <jsnell@sixcolors.com>... 
+By Jason Snell <jsnell@sixcolors.com>
 
-...and many others, including Matt Silverlock (whose code was the initial inspiration for this), Rob Silverii (who added the gradients and themes per AQI level), and Adam Lickel (who added some better JavaScript formatting and moved stuff into functions.)
+With contributions by many others, including Matt Silverlock (whose code was the initial inspiration for this), Rob Silverii (who added the gradients and themes per AQI level), and Adam Lickel (who added some better JavaScript formatting and moved stuff into functions).
 
-## What this is
+## About this project
 
 This script is meant to be used inside [Scriptable](https://scriptable.app) to generate iOS home screen widgets.
 
@@ -21,6 +21,12 @@ You can [read about the backstory here](https://thebolditalic.com/understanding-
 This widget uses the draft EPA calculation [detailed in this document](https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=349513&Lab=CEMM&simplesearch=0&showcriteria=2&sortby=pubDate&timstype=&datebeginpublishedpresented=08/25/2018).
 
 As of this writing, the [AQandU](https://climatechange.ucdavis.edu/what-can-i-do/making-sense-of-air-quality-sensors-an-aqi-explainer/) calculation on PurpleAir is going to give you a reading that's more accurate than the default. I hope the new EPA calc will appear on PurpleAir soon.
+
+## Do I need to sweat the numbers?
+
+You don't. Earlier versions of this widget had a larger display for the numbers and a smaller display for the condition level, but the real point of AQI isn't a precise number, it's getting the level -- the words and color -- in the right zone.
+
+But we all like numbers, so it displays a number too. Also, the widget does display a trend if one exists, so if you're in volatile conditions, you should be able to tell at a glance if your air quality is improving or worsening. I found this very useful during a recent set of wildfires in my area.
 
 ## How to use this
 
