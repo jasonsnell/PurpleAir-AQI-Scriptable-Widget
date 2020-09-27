@@ -1,6 +1,6 @@
 # PurpleAir-AQI-Scriptable-Widget
 
-By Jason Snell <jsnell@sixcolors.com>... 
+By Jason Snell - <jsnell@sixcolors.com>... 
 
 ...and many others, including Matt Silverlock (whose code was the initial inspiration for this), Rob Silverii (who added the gradients and themes per AQI level), and Adam Lickel (who added some better JavaScript formatting and moved stuff into functions.)
 
@@ -8,11 +8,19 @@ By Jason Snell <jsnell@sixcolors.com>...
 
 This script is meant to be used inside scriptable.app to generate iOS home screen widgets.
 
-It uses the PurpleAir network (purpleair.com) to display your local air quality, including AQI rating and trend.
+It uses data from the PurpleAir network (purpleair.com) of low-cost, consumer air quality sensors to display your local air quality, including AQI rating and trend.
 
-It's using a draft adjustment from the EPA for low-cost sensors like PurpleAir in areas where wood smoke is an issue, such as those affected by smoke from wildfires.
+## Why doesn't this widget match what I see on PurpleAir's map?
 
-<https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=349513&Lab=CEMM&simplesearch=0&showcriteria=2&sortby=pubDate&timstype=&datebeginpublishedpresented=08/25/2018>
+Standard AQI calculations were made with certain assumptions in place, including a goal of understanding industrial smog and and the use of expensive particle detectors. They were also meant to reflect long-term readings.
+
+This widget using a draft adjustment from the EPA for more immediate readings from low-cost sensors like PurpleAir in areas where wood smoke is an issue, such as those affected by smoke from wildfires.
+
+You can [read about the backstory here](https://thebolditalic.com/understanding-purpleair-vs-airnow-gov-measurements-of-wood-smoke-pollution-562923a55226).
+
+This widget uses the draft EPA calculation [detailed in this document](https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=349513&Lab=CEMM&simplesearch=0&showcriteria=2&sortby=pubDate&timstype=&datebeginpublishedpresented=08/25/2018).
+
+As of this writing, the "AQandU" calculation on PurpleAir is going to give you a reading that's more accurate than the default. I hope the new EPA calc will appear on PurpleAir soon.
 
 ## How to use this
 
@@ -26,7 +34,7 @@ To find a sensor ID, go to the PurpleAir map and tap or click on a station near 
 
 ## The backstory
 
-Read more about the origin of this project at:
+You can [read more about the origin of this project](https://sixcolors.com/post/2020/08/how-bad-is-the-air-out-there/) if you like.
 
-https://sixcolors.com/post/2020/08/how-bad-is-the-air-out-there/
+
 
