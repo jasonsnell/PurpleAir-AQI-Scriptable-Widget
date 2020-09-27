@@ -6,9 +6,9 @@ By Jason Snell - <jsnell@sixcolors.com>...
 
 ## What this is
 
-This script is meant to be used inside scriptable.app to generate iOS home screen widgets.
+This script is meant to be used inside [Scriptable](https://scriptable.app) to generate iOS home screen widgets.
 
-It uses data from the PurpleAir network (purpleair.com) of low-cost, consumer air quality sensors to display your local air quality, including AQI rating and trend.
+It uses data from the [PurpleAir network](https://www2.purpleair.com) of low-cost, consumer air quality sensors to display your local air quality, including AQI rating and trend.
 
 ## Why doesn't this widget match what I see on PurpleAir's map?
 
@@ -20,7 +20,7 @@ You can [read about the backstory here](https://thebolditalic.com/understanding-
 
 This widget uses the draft EPA calculation [detailed in this document](https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=349513&Lab=CEMM&simplesearch=0&showcriteria=2&sortby=pubDate&timstype=&datebeginpublishedpresented=08/25/2018).
 
-As of this writing, the "AQandU" calculation on PurpleAir is going to give you a reading that's more accurate than the default. I hope the new EPA calc will appear on PurpleAir soon.
+As of this writing, the [AQandU](https://climatechange.ucdavis.edu/what-can-i-do/making-sense-of-air-quality-sensors-an-aqi-explainer/) calculation on PurpleAir is going to give you a reading that's more accurate than the default. I hope the new EPA calc will appear on PurpleAir soon.
 
 ## How to use this
 
