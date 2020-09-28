@@ -1,6 +1,6 @@
 # PurpleAir-AQI-Scriptable-Widget
 
-![](widget.jpg "Widget in action" | width=300)
+![](widget.jpg "Widget in action")
 
 By Jason Snell <jsnell@sixcolors.com>
 
