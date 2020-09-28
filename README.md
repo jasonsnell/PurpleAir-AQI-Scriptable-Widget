@@ -1,5 +1,7 @@
 # PurpleAir-AQI-Scriptable-Widget
 
+![](widget.jpg "Widget in action")
+
 By Jason Snell <jsnell@sixcolors.com>
 
 With contributions by many others, including Matt Silverlock (whose code was the initial inspiration for this), Rob Silverii (who added the gradients and themes per AQI level), and Adam Lickel (who added some better JavaScript formatting and moved stuff into functions).
