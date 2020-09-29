@@ -1,6 +1,3 @@
-// Variables used by Scriptable.
-// These must be at the very top of the file. Do not edit.
-// icon-color: purple; icon-glyph: tree;
 // This code is from <https://github.com/jasonsnell/PurpleAir-AQI-Scriptable-Widget>
 // By Jason Snell based on code by Matt Silverlock, Rob Silverii, Adam Lickel
 
@@ -9,7 +6,7 @@ const API_URL = "https://www.purpleair.com/json?show=";
 // Find a nearby PurpleAir sensor ID via https://fire.airnow.gov/
 // Click a sensor near your location: the ID is the trailing integers
 // https://www.purpleair.com/json has all sensors by location & ID.
-let SENSOR_ID = args.widgetParameter || "69229";
+let SENSOR_ID = args.widgetParameter || "69223";
 
 // Fetch content from PurpleAir
 async function getSensorData(url, id) {
@@ -36,13 +33,19 @@ const levelAttributes = [
     startColor: "9e2043",
     endColor: "7e0023",
     textColor: "ffffff",
+    darkStartColor: "9e2043",
+    darkEndColor: "7e0023",
+    darkTextColor: "bbbbbb",
   },
   {
     threshold: 200,
     label: "Very Unhealthy",
-    startColor: "8f3f97",
-    endColor: "6f1f77",
-    textColor: "ffffff",
+    startColor: "edc4ff",
+    endColor: "edc4ff",
+    textColor: "8f3f97",
+    darkStartColor: "8f3f97",
+    darkEndColor: "6f1f77",
+    darkTextColor: "ffffff",
  },
   {
     threshold: 150,
@@ -50,27 +53,39 @@ const levelAttributes = [
     startColor: "FF3D3D",
     endColor: "D60000",
     textColor: "000000",
+    darkStartColor: "820a00",
+    darkEndColor: "530500",
+    darkTextColor: "999999",
   },
   {
     threshold: 100,
     label: "Unhealthy (S.G.)",
-    startColor: "FFA63D",
-    endColor: "D67200",
+    startColor: "facc00",
+    endColor: "faa003",
     textColor: "000000",
+    darkStartColor: "333333",
+    darkEndColor: "000000",
+    darkTextColor: "ff7600",
   },
   {
     threshold: 50,
     label: "Moderate",
     startColor: "ffff00",
-    endColor: "cccc00",
+    endColor: "dddd00",
     textColor: "000000",
+    darkStartColor: "333333",
+    darkEndColor: "000000",
+    darkTextColor: "ffff00",
   },
   {
     threshold: -20,
     label: "Good",
-    startColor: "009900",
-    endColor: "007700",
+    startColor: "00ff00",
+    endColor: "00bb00",
     textColor: "000000",
+    darkStartColor: "005500",
+    darkEndColor: "003300",
+    darkTextColor: "ffffff",
   },
 ];
 
@@ -129,10 +144,14 @@ function calcAQI(Cp, Ih, Il, BPh, BPl) {
 function calculateLevel(aqi) {
   let res = {
     level: "0",
-    label: "Fine?",
+    label: "Weird",
     startColor: "white",
     endColor: "white",
     textColor: "black",
+    darkStartColor: "009900",
+    darkEndColor: "007700",
+    darkTextColor: "000000",
+
   };
 
   let level = parseInt(aqi, 10) || 0;
@@ -161,6 +180,7 @@ function trendsFromStats(stats) {
 }
 
 async function run() {
+   
   let wg = new ListWidget();
   wg.setPadding(20, 15, 10, 10);
 
@@ -175,18 +195,28 @@ async function run() {
     console.log(theTrend);
 
     let epaPM = computePM(data);
-    console.log(epaPM);
+    console.log('EPA PM is ' + epaPM);
 
-    let aqi = aqiFromPM(epaPM);
+    let aqi =  aqiFromPM(epaPM);
     let level = calculateLevel(aqi);
     let aqiText = aqi.toString();
-    console.log(aqi);
-    console.log(level.level);
+    console.log('AQI is ' + aqi);
+    
+if (Device.isUsingDarkAppearance() === true) {
+    startColor = new Color(level.darkStartColor);
+    endColor = new Color(level.darkEndColor);
+    textColor = new Color(level.darkTextColor);
+    gradient = new LinearGradient();
+    console.log('dark mode');
+} else {
 
-    let startColor = new Color(level.startColor);
-    let endColor = new Color(level.endColor);
-    let textColor = new Color(level.textColor);
-    let gradient = new LinearGradient();
+    startColor = new Color(level.startColor);
+    endColor = new Color(level.endColor);
+    textColor = new Color(level.textColor);
+    gradient = new LinearGradient();
+    console.log('light mode');
+}
+
     gradient.colors = [startColor, endColor];
     gradient.locations = [0.0, 1];
     console.log(gradient);
