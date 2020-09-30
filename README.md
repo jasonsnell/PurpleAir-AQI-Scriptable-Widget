@@ -2,9 +2,7 @@
 
 ![](widget.jpg "Widget in action")
 
-By Jason Snell <jsnell@sixcolors.com>
-
-With contributions by many others, including Matt Silverlock (whose code was the initial inspiration for this), Rob Silverii (who added the gradients and themes per AQI level), and Adam Lickel (who added some better JavaScript formatting and moved stuff into functions).
+By Jason Snell <jsnell@sixcolors.com> with enormous contributions by many others, including **Matt Silverlock** (whose code was where this project started), **Rob Silverii** (who added the gradients and themes per AQI level), **Adam Lickel** (who added some better JavaScript formatting and moved stuff into functions), and **Alexander Ogilvie** (who refactored the whole script and added a bunch of JavaScript niceties).
 
 ## About this project
 
