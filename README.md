@@ -10,6 +10,10 @@ This script is meant to be used inside [Scriptable](https://scriptable.app) to g
 
 It uses data from the [PurpleAir network](https://www2.purpleair.com) of low-cost, consumer air quality sensors to display your local air quality, including AQI rating and trend.
 
+The EPA has a large, established network of air-quality sensors that feed into many weather apps and their assorted widgets. I built this tool because the nearest EPA sensor to me was three towns away and in heavy wildfire smoke conditions did not accurately reflect my local air quality.
+
+If you just want the official EPA numbers, you don't need this widget.
+
 ## Why doesn't this widget match what I see on PurpleAir's map?
 
 Standard AQI calculations were made with certain assumptions in place, including a goal of understanding industrial smog and and the use of expensive particle detectors. They were also meant to reflect long-term readings.
