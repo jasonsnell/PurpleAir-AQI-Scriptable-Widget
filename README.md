@@ -2,7 +2,7 @@
 
 <img src="https://sixcolors.com/wp-content/uploads/2020/10/widget-44.jpg" width="400" />
 
-By Jason Snell <jsnell@sixcolors.com> with enormous contributions by many others, including **Matt Silverlock** (whose code was where this project started), **Rob Silverii** (who added the gradients and themes per AQI level), **Adam Lickel** (who added some better JavaScript formatting and moved stuff into functions), and **Alexander Ogilvie** (who refactored the whole script and added a bunch of JavaScript niceties).
+By Jason Snell <jsnell@sixcolors.com> with enormous contributions by many others, including Matt Silverlock , Rob Silverii, Adam Lickel, Alexander Ogilvie, and Brian Donovan.
 
 ## About this project
 
