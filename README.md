@@ -6,7 +6,7 @@ By Jason Snell <jsnell@sixcolors.com> with enormous contributions by many others
 
 ## About this project
 
-This script is meant to be used inside [Scriptable](https://scriptable.app) to generate iOS home screen widgets. **This version requires the latest Scriptable 1.5.1 beta. [Sign up for it here](https://testflight.apple.com/join/klHcZHjN).**
+This script is meant to be used inside [Scriptable](https://scriptable.app) to generate iOS home screen widgets. The trend line feature requires the latest Scriptable 1.5.1 beta. [Sign up for it here](https://testflight.apple.com/join/klHcZHjN).
 
 It uses data from the [PurpleAir network](https://www2.purpleair.com) of low-cost, consumer air quality sensors to display your local air quality, including AQI rating and trend.
 

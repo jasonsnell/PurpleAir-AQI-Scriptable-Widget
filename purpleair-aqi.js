@@ -105,7 +105,7 @@ const LEVEL_ATTRIBUTES = [
     darkStartColor: "333333",
     darkEndColor: "000000",
     darkTextColor: "ff7600",
-   },
+  },
   {
     threshold: 50,
     label: "Moderate",
@@ -274,17 +274,23 @@ async function run() {
 
     listWidget.addSpacer(5);
 
-    let scoreStack = listWidget.addStack()
+    if (listWidget.addStack) {
+      const scoreStack = listWidget.addStack()
 
-    const content = scoreStack.addText(aqiText);
-    content.textColor = textColor;
-    content.font = Font.mediumSystemFont(30);
+      const content = scoreStack.addText(aqiText);
+      content.textColor = textColor;
+      content.font = Font.mediumSystemFont(30);
 
-  const trendSymbol = createSymbol(aqiTrend);
-  const trendImg = scoreStack.addImage(trendSymbol.image);
-  trendImg.resizable = false;
-  trendImg.tintColor = textColor;
-  trendImg.imageSize = new Size(30, 38);
+      const trendSymbol = createSymbol(aqiTrend);
+      const trendImg = scoreStack.addImage(trendSymbol.image);
+      trendImg.resizable = false;
+      trendImg.tintColor = textColor;
+      trendImg.imageSize = new Size(30, 38);
+    } else {
+      const content = listWidget.addText(aqiText);
+      content.textColor = textColor;
+      content.font = Font.mediumSystemFont(30);
+    }
 
     const wordLevel = listWidget.addText(level.label);
     wordLevel.textColor = textColor;
