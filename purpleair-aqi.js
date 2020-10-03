@@ -98,14 +98,14 @@ const LEVEL_ATTRIBUTES = [
   },
   {
     threshold: 100,
-    label: "Unhealthy (S.G.)",
+    label: "Unhealthy for Sensitive Groups",
     startColor: "facc00",
     endColor: "faa003",
     textColor: "000000",
     darkStartColor: "333333",
     darkEndColor: "000000",
     darkTextColor: "ff7600",
-  },
+   },
   {
     threshold: 50,
     label: "Moderate",
@@ -127,6 +127,7 @@ const LEVEL_ATTRIBUTES = [
     darkTextColor: "ffffff",
   },
 ];
+
 
 /**
  * Get the EPA adjusted PPM
@@ -214,19 +215,19 @@ function calculateLevel(aqi) {
 /**
  * Get the AQI trend
  *
- * @param {{ v1: number; v2: number; }} stats
+ * @param {{ v1: number; v3: number; }} stats
  * @returns {string}
  */
-function getAQITrend({ v1: partLive, v2: partTime }) {
+function getAQITrend({ v1: partLive, v3: partTime }) {
   const partDelta = partTime - partLive;
-  if (partDelta > 5) return " Improving";
-  if (partDelta < -5) return " Worsening";
-  return "";
+  if (partDelta > 5) return "arrow.up";
+  if (partDelta < -5) return "arrow.down";
+  return "arrow.left.and.right";
 }
 
 async function run() {
   const listWidget = new ListWidget();
-  listWidget.setPadding(20, 15, 10, 10);
+  listWidget.setPadding(10, 15, 10, 10);
 
   try {
     console.log(`Using sensor ID: ${SENSOR_ID}`);
@@ -267,24 +268,35 @@ async function run() {
 
     listWidget.backgroundGradient = gradient;
 
-    const header = listWidget.addText(`AQI${aqiTrend}`);
+    const header = listWidget.addText(`Air Quality`);
     header.textColor = textColor;
-    header.font = Font.regularSystemFont(15);
+    header.font = Font.regularSystemFont(14);
 
-    const content = listWidget.addText(aqiText);
+    listWidget.addSpacer(5);
+
+    let scoreStack = listWidget.addStack()
+
+    const content = scoreStack.addText(aqiText);
     content.textColor = textColor;
-    content.font = Font.semiboldRoundedSystemFont(30);
+    content.font = Font.mediumSystemFont(30);
+
+  const trendSymbol = createSymbol(aqiTrend);
+  const trendImg = scoreStack.addImage(trendSymbol.image);
+  trendImg.resizable = false;
+  trendImg.tintColor = textColor;
+  trendImg.imageSize = new Size(30, 38);
 
     const wordLevel = listWidget.addText(level.label);
     wordLevel.textColor = textColor;
-    wordLevel.font = Font.boldSystemFont(25);
+    wordLevel.font = Font.semiboldSystemFont(24);
     wordLevel.minimumScaleFactor = 0.3;
 
     listWidget.addSpacer(10);
 
     const location = listWidget.addText(data.loc);
     location.textColor = textColor;
-    location.font = Font.mediumSystemFont(12);
+    location.font = Font.regularSystemFont(13);
+    location.minimumScaleFactor = 0.5;
 
     const updatedAt = new Date(data.ts * 1000).toLocaleTimeString([], {
       hour: "2-digit",
@@ -292,9 +304,9 @@ async function run() {
     });
     const widgetText = listWidget.addText(`Updated ${updatedAt}`);
     widgetText.textColor = textColor;
-    widgetText.font = Font.lightSystemFont(10);
+    widgetText.font = Font.regularSystemFont(10);
+    widgetText.minimumScaleFactor = 0.5;
 
-    listWidget.addSpacer(10);
 
     const purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC0&select=${SENSOR_ID}#14/${data.lat}/${data.lon}`;
     listWidget.url = purpleMapUrl;
@@ -316,3 +328,11 @@ async function run() {
 }
 
 await run();
+
+
+function createSymbol(name) {
+  const font = Font.systemFont(20)
+  const sym = SFSymbol.named(name)
+  sym.applyFont(font)
+  return sym
+}
