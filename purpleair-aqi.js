@@ -220,8 +220,8 @@ function calculateLevel(aqi) {
  */
 function getAQITrend({ v1: partLive, v3: partTime }) {
   const partDelta = partTime - partLive;
-  if (partDelta > 5) return "arrow.up";
-  if (partDelta < -5) return "arrow.down";
+  if (partDelta > 5) return "arrow.down";
+  if (partDelta < -5) return "arrow.up";
   return "arrow.left.and.right";
 }
 
@@ -328,6 +328,9 @@ async function run() {
 }
 
 await run();
+
+
+
 
 
 function createSymbol(name) {
