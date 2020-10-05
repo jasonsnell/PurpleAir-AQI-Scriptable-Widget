@@ -12,19 +12,17 @@ It uses data from the [PurpleAir network](https://www2.purpleair.com) of low-cos
 
 The EPA has a large, established network of air-quality sensors that feed into many weather apps and their assorted widgets. I built this tool because the nearest EPA sensor to me was three towns away and in heavy wildfire smoke conditions did not accurately reflect my local air quality.
 
-If you just want the official EPA numbers, you don't need this widget.
+If you just want the official EPA sensors, you don't need this widget.
 
 ## Why doesn't this widget match what I see on PurpleAir's map?
 
 Standard AQI calculations were made with certain assumptions in place, including a goal of understanding industrial smog and and the use of expensive particle detectors. They were also meant to reflect long-term readings.
 
-This widget using a draft adjustment from the EPA for more immediate readings from low-cost sensors like PurpleAir in areas where wood smoke is an issue, such as those affected by smoke from wildfires.
+This widget uses an EPA calculation [detailed in this document](https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=349513&Lab=CEMM&simplesearch=0&showcriteria=2&sortby=pubDate&timstype=&datebeginpublishedpresented=08/25/2018) for more immediate readings from low-cost sensors like PurpleAir in areas where wood smoke is an issue, such as those affected by smoke from wildfires.
 
 You can [read about the backstory here](https://thebolditalic.com/understanding-purpleair-vs-airnow-gov-measurements-of-wood-smoke-pollution-562923a55226).
 
-This widget uses the draft EPA calculation [detailed in this document](https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=349513&Lab=CEMM&simplesearch=0&showcriteria=2&sortby=pubDate&timstype=&datebeginpublishedpresented=08/25/2018).
-
-As of this writing, the [AQandU](https://climatechange.ucdavis.edu/what-can-i-do/making-sense-of-air-quality-sensors-an-aqi-explainer/) calculation on PurpleAir is going to give you a reading that's more accurate than the default. I hope the new EPA calc will appear on PurpleAir soon.
+To see this calculation on PurpleAir, choose **US EPA** from the Conversion popup on the PurpleAir map.
 
 ## Do I need to sweat the numbers?
 
