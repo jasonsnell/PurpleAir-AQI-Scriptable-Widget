@@ -141,9 +141,8 @@ function computePM(sensorData) {
   const hum = Number.parseInt(sensorData.hum, 10);
   const dataAverage = (adj1 + adj2) / 2;
 
-  return 0.534 * dataAverage - 0.0844 * hum + 5.604;
+  return 0.52 * dataAverage - 0.085 * hum + 5.71;
 }
-
 
 /**
  * Get AQI number from PPM reading
