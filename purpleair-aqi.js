@@ -141,8 +141,9 @@ function computePM(sensorData) {
   const hum = Number.parseInt(sensorData.hum, 10);
   const dataAverage = (adj1 + adj2) / 2;
 
-  return 0.52 * dataAverage - 0.085 * hum + 5.71;
+  return 0.534 * dataAverage - 0.0844 * hum + 5.604;
 }
+
 
 /**
  * Get AQI number from PPM reading
@@ -274,23 +275,15 @@ async function run() {
 
     listWidget.addSpacer(5);
 
-    if (listWidget.addStack) {
       const scoreStack = listWidget.addStack()
-
       const content = scoreStack.addText(aqiText);
       content.textColor = textColor;
       content.font = Font.mediumSystemFont(30);
-
       const trendSymbol = createSymbol(aqiTrend);
       const trendImg = scoreStack.addImage(trendSymbol.image);
       trendImg.resizable = false;
       trendImg.tintColor = textColor;
       trendImg.imageSize = new Size(30, 38);
-    } else {
-      const content = listWidget.addText(aqiText);
-      content.textColor = textColor;
-      content.font = Font.mediumSystemFont(30);
-    }
 
     const wordLevel = listWidget.addText(level.label);
     wordLevel.textColor = textColor;
