@@ -128,7 +128,6 @@ const LEVEL_ATTRIBUTES = [
   },
 ];
 
-
 /**
  * Get the EPA adjusted PPM
  *
@@ -225,6 +224,18 @@ function getAQITrend({ v1: partLive, v3: partTime }) {
   return "arrow.left.and.right";
 }
 
+/**
+ * Constructs an SFSymbol from the given symbolName
+ *
+ * @param {string} symbolName
+ * @returns {object} SFSymbol
+ */
+function createSymbol(symbolName) {
+  const symbol = SFSymbol.named(symbolName);
+  symbol.applyFont(Font.systemFont(20));
+  return symbol;
+}
+
 async function run() {
   const listWidget = new ListWidget();
   listWidget.setPadding(10, 15, 10, 10);
@@ -268,21 +279,21 @@ async function run() {
 
     listWidget.backgroundGradient = gradient;
 
-    const header = listWidget.addText(`Air Quality`);
+    const header = listWidget.addText("Air Quality");
     header.textColor = textColor;
     header.font = Font.regularSystemFont(14);
 
     listWidget.addSpacer(5);
 
-      const scoreStack = listWidget.addStack()
-      const content = scoreStack.addText(aqiText);
-      content.textColor = textColor;
-      content.font = Font.mediumSystemFont(30);
-      const trendSymbol = createSymbol(aqiTrend);
-      const trendImg = scoreStack.addImage(trendSymbol.image);
-      trendImg.resizable = false;
-      trendImg.tintColor = textColor;
-      trendImg.imageSize = new Size(30, 38);
+    const scoreStack = listWidget.addStack();
+    const content = scoreStack.addText(aqiText);
+    content.textColor = textColor;
+    content.font = Font.mediumSystemFont(30);
+    const trendSymbol = createSymbol(aqiTrend);
+    const trendImg = scoreStack.addImage(trendSymbol.image);
+    trendImg.resizable = false;
+    trendImg.tintColor = textColor;
+    trendImg.imageSize = new Size(30, 38);
 
     const wordLevel = listWidget.addText(level.label);
     wordLevel.textColor = textColor;
@@ -305,7 +316,6 @@ async function run() {
     widgetText.font = Font.regularSystemFont(10);
     widgetText.minimumScaleFactor = 0.5;
 
-
     const purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5&select=${SENSOR_ID}#14/${data.lat}/${data.lon}`;
     listWidget.url = purpleMapUrl;
   } catch (error) {
@@ -326,14 +336,3 @@ async function run() {
 }
 
 await run();
-
-
-
-
-
-function createSymbol(name) {
-  const font = Font.systemFont(20)
-  const sym = SFSymbol.named(name)
-  sym.applyFont(font)
-  return sym
-}
