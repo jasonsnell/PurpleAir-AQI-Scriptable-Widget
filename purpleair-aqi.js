@@ -1,8 +1,9 @@
 "use strict";
 
 /**
- * This code is from <https://github.com/jasonsnell/PurpleAir-AQI-Scriptable-Widget>
- * By Jason Snell based on code by Matt Silverlock, Rob Silverii, Adam Lickel, Alexander Ogilvie
+ * This widget is from <https://github.com/jasonsnell/PurpleAir-AQI-Scriptable-Widget>
+ * By Jason Snell, Rob Silverii, Adam Lickel, Alexander Ogilvie, and Brian Donovan.
+ * Based on code by Matt Silverlock.
  */
 
 const API_URL = "https://www.purpleair.com";
