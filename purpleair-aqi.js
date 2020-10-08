@@ -51,11 +51,13 @@ const DEFAULT_SENSOR_ID = 69223;
 /**
  * Get the closest PurpleAir sensorId to the given location
  *
- * @param {LatLon} location
  * @returns {Promise<number>}
  */
-async function getSensorId({ latitude, longitude }) {
+async function getSensorId() {
   if (SENSOR_ID) return SENSOR_ID;
+
+  /** @type {LatLon} */
+  const { latitude, longitude } = await Location.current();
 
   const BOUND_OFFSET = 0.05;
 
@@ -320,9 +322,7 @@ async function run() {
   listWidget.setPadding(10, 15, 10, 10);
 
   try {
-    /** @type {LatLon} */
-    const deviceLocation = await Location.current();
-    const sensorId = await getSensorId(deviceLocation);
+    const sensorId = await getSensorId();
     console.log(`Using sensor ID: ${sensorId}`);
 
     const data = await getSensorData(sensorId);
