@@ -398,7 +398,7 @@ async function run() {
     widgetText.font = Font.regularSystemFont(10);
     widgetText.minimumScaleFactor = 0.5;
 
-    const purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5&select=${SENSOR_ID}#14/${data.lat}/${data.lon}`;
+    const purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5&select=${sensorId}#14/${data.lat}/${data.lon}`;
     listWidget.url = purpleMapUrl;
   } catch (error) {
     console.log(error);
