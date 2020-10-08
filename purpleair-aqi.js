@@ -82,19 +82,19 @@ async function getSensorId({ latitude, longitude }) {
   const typeIndex = fields.indexOf("Type");
   const OUTDOOR = 0;
 
-  const [closestSensor] = data
-    .filter((datum) => datum[typeIndex] === OUTDOOR)
-    .sort(
-      (a, b) =>
-        haversine(
-          { latitude, longitude },
-          { latitude: a[latIndex], longitude: a[lonIndex] }
-        ) -
-        haversine(
-          { latitude, longitude },
-          { latitude: b[latIndex], longitude: b[lonIndex] }
-        )
+  let closestSensor;
+  let closestDistance = Infinity;
+
+  for (const location of data.filter((datum) => datum[typeIndex] === OUTDOOR)) {
+    const distanceFromLocation = haversine(
+      { latitude, longitude },
+      { latitude: location[latIndex], longitude: location[lonIndex] }
     );
+    if (distanceFromLocation < closestDistance) {
+      closestDistance = distanceFromLocation;
+      closestSensor = location;
+    }
+  }
 
   return closestSensor ? closestSensor[sensorIdIndex] : DEFAULT_SENSOR_ID;
 }
