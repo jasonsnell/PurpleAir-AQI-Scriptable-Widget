@@ -51,11 +51,13 @@ const DEFAULT_SENSOR_ID = 69223;
 /**
  * Get the closest PurpleAir sensorId to the given location
  *
- * @param {LatLon} location
  * @returns {Promise<number>}
  */
-async function getSensorId({ latitude, longitude }) {
+async function getSensorId() {
   if (SENSOR_ID) return SENSOR_ID;
+
+  /** @type {LatLon} */
+  const { latitude, longitude } = await Location.current();
 
   const BOUND_OFFSET = 0.05;
 
@@ -82,19 +84,19 @@ async function getSensorId({ latitude, longitude }) {
   const typeIndex = fields.indexOf("Type");
   const OUTDOOR = 0;
 
-  const [closestSensor] = data
-    .filter((datum) => datum[typeIndex] === OUTDOOR)
-    .sort(
-      (a, b) =>
-        haversine(
-          { latitude, longitude },
-          { latitude: a[latIndex], longitude: a[lonIndex] }
-        ) -
-        haversine(
-          { latitude, longitude },
-          { latitude: b[latIndex], longitude: b[lonIndex] }
-        )
+  let closestSensor;
+  let closestDistance = Infinity;
+
+  for (const location of data.filter((datum) => datum[typeIndex] === OUTDOOR)) {
+    const distanceFromLocation = haversine(
+      { latitude, longitude },
+      { latitude: location[latIndex], longitude: location[lonIndex] }
     );
+    if (distanceFromLocation < closestDistance) {
+      closestDistance = distanceFromLocation;
+      closestSensor = location;
+    }
+  }
 
   return closestSensor ? closestSensor[sensorIdIndex] : DEFAULT_SENSOR_ID;
 }
@@ -320,9 +322,7 @@ async function run() {
   listWidget.setPadding(10, 15, 10, 10);
 
   try {
-    /** @type {LatLon} */
-    const deviceLocation = await Location.current();
-    const sensorId = await getSensorId(deviceLocation);
+    const sensorId = await getSensorId();
     console.log(`Using sensor ID: ${sensorId}`);
 
     const data = await getSensorData(sensorId);
