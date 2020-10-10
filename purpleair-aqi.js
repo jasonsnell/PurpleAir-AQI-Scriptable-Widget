@@ -96,66 +96,64 @@ async function getSensorId() {
 
   let fallbackSensorId = undefined;
 
-  const cachedSensor = getCachedData("sensor.json");
-  if (cachedSensor) {
-    console.log({ cachedSensor });
+  try {
+    const cachedSensor = getCachedData("sensor.json");
+    if (cachedSensor) {
+      console.log({ cachedSensor });
 
-    const { id, updatedAt } = cachedSensor;
-    fallbackSensorId = id;
-    // If we've fetched the location within the last 15 minutes, just return it
-    if (Date.now() - updatedAt < 15 * 60 * 1000) {
-      return id;
+      const { id, updatedAt } = cachedSensor;
+      fallbackSensorId = id;
+      // If we've fetched the location within the last 15 minutes, just return it
+      if (Date.now() - updatedAt < 15 * 60 * 1000) {
+        return id;
+      }
     }
-  }
 
-  /** @type {LatLon} */
-  const { latitude, longitude } = await Location.current();
+    /** @type {LatLon} */
+    const { latitude, longitude } = await Location.current();
 
-  const BOUND_OFFSET = 0.05;
+    const BOUND_OFFSET = 0.05;
 
-  const nwLat = latitude + BOUND_OFFSET;
-  const seLat = latitude - BOUND_OFFSET;
-  const nwLng = longitude - BOUND_OFFSET;
-  const seLng = longitude + BOUND_OFFSET;
+    const nwLat = latitude + BOUND_OFFSET;
+    const seLat = latitude - BOUND_OFFSET;
+    const nwLng = longitude - BOUND_OFFSET;
+    const seLng = longitude + BOUND_OFFSET;
 
-  const req = new Request(
-    `${API_URL}/data.json?opt=1/mAQI/a10/cC5&fetch=true&nwlat=${nwLat}&selat=${seLat}&nwlng=${nwLng}&selng=${seLng}&fields=ID`
-  );
-
-  /** @type {{ code?: number; data?: Array<Array<number>>; fields?: Array<string>; }} */
-  const res = await req.loadJSON();
-
-  const RATE_LIMIT = 429;
-  if (res.code === RATE_LIMIT) return fallbackSensorId;
-
-  const { fields, data } = res;
-
-  const sensorIdIndex = fields.indexOf("ID");
-  const latIndex = fields.indexOf("Lat");
-  const lonIndex = fields.indexOf("Lon");
-  const typeIndex = fields.indexOf("Type");
-  const OUTDOOR = 0;
-
-  let closestSensor;
-  let closestDistance = Infinity;
-
-  for (const location of data.filter((datum) => datum[typeIndex] === OUTDOOR)) {
-    const distanceFromLocation = haversine(
-      { latitude, longitude },
-      { latitude: location[latIndex], longitude: location[lonIndex] }
+    const req = new Request(
+      `${API_URL}/data.json?opt=1/mAQI/a10/cC5&fetch=true&nwlat=${nwLat}&selat=${seLat}&nwlng=${nwLng}&selng=${seLng}&fields=ID`
     );
-    if (distanceFromLocation < closestDistance) {
-      closestDistance = distanceFromLocation;
-      closestSensor = location;
-    }
-  }
 
-  if (closestSensor) {
+    /** @type {{ code?: number; data?: Array<Array<number>>; fields?: Array<string>; }} */
+    const res = await req.loadJSON();
+
+    const { fields, data } = res;
+
+    const sensorIdIndex = fields.indexOf("ID");
+    const latIndex = fields.indexOf("Lat");
+    const lonIndex = fields.indexOf("Lon");
+    const typeIndex = fields.indexOf("Type");
+    const OUTDOOR = 0;
+
+    let closestSensor;
+    let closestDistance = Infinity;
+
+    for (const location of data.filter((datum) => datum[typeIndex] === OUTDOOR)) {
+      const distanceFromLocation = haversine(
+        { latitude, longitude },
+        { latitude: location[latIndex], longitude: location[lonIndex] }
+      );
+      if (distanceFromLocation < closestDistance) {
+        closestDistance = distanceFromLocation;
+        closestSensor = location;
+      }
+    }
+
     const id = closestSensor[sensorIdIndex];
     cacheData("sensor.json", { id, updatedAt: Date.now() });
 
     return id;
-  } else {
+  } catch (error) {
+    console.log(`Could not fetch location: ${error}`);
     return fallbackSensorId;
   }
 }
@@ -463,7 +461,7 @@ async function run() {
     const purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5&select=${sensorId}#14/${data.lat}/${data.lon}`;
     listWidget.url = purpleMapUrl;
   } catch (error) {
-    console.log(error);
+    console.log(`Could not render widget: ${error}`);
 
     const errorWidgetText = listWidget.addText(`${error}`);
     errorWidgetText.textColor = Color.red();
