@@ -15,7 +15,6 @@ const API_URL = "https://www.purpleair.com";
  * @type {number}
  */
 const SENSOR_ID = args.widgetParameter;
-const DEFAULT_SENSOR_ID = 69223;
 
 /**
  * Widget attributes: AQI level threshold, text label, gradient start and end colors, text color
@@ -50,12 +49,64 @@ const DEFAULT_SENSOR_ID = 69223;
  */
 
 /**
+ * Get JSON from a local file
+ *
+ * @param {string} fileName
+ * @returns {object}
+ */
+function getCachedData(fileName) {
+  const fileManager = FileManager.local();
+  const cacheDirectory = fileManager.joinPath(fileManager.libraryDirectory(), "jsnell-aqi");
+  const cacheFile = fileManager.joinPath(cacheDirectory, fileName);
+
+  if (!fileManager.fileExists(cacheFile)) {
+    return undefined;
+  }
+
+  const contents = fileManager.readString(cacheFile);
+  return JSON.parse(contents);
+}
+
+/**
+ * Wite JSON to a local file
+ *
+ * @param {string} fileName
+ * @param {object} data
+ */
+function cacheData(fileName, data) {
+  const fileManager = FileManager.local();
+  const cacheDirectory = fileManager.joinPath(fileManager.libraryDirectory(), "jsnell-aqi");
+  const cacheFile = fileManager.joinPath(cacheDirectory, fileName);
+
+  if (!fileManager.fileExists(cacheDirectory)) {
+    fileManager.createDirectory(cacheDirectory);
+  }
+
+  const contents = JSON.stringify(data);
+  fileManager.writeString(cacheFile, contents);
+}
+
+/**
  * Get the closest PurpleAir sensorId to the given location
  *
  * @returns {Promise<number>}
  */
 async function getSensorId() {
   if (SENSOR_ID) return SENSOR_ID;
+
+  let fallbackSensorId = undefined;
+
+  const cachedSensor = getCachedData("sensor.json");
+  if (cachedSensor) {
+    console.log({ cachedSensor });
+
+    const { id, updatedAt } = cachedSensor;
+    fallbackSensorId = id;
+    // If we've fetched the location within the last 15 minutes, just return it
+    if (Date.now() - updatedAt < 15 * 60 * 1000) {
+      return id;
+    }
+  }
 
   /** @type {LatLon} */
   const { latitude, longitude } = await Location.current();
@@ -71,11 +122,11 @@ async function getSensorId() {
     `${API_URL}/data.json?opt=1/mAQI/a10/cC5&fetch=true&nwlat=${nwLat}&selat=${seLat}&nwlng=${nwLng}&selng=${seLng}&fields=ID`
   );
 
-  /** @type {{ code?: number; data?: Array<Array<number>>; fields?: Array<string>;  }} */
+  /** @type {{ code?: number; data?: Array<Array<number>>; fields?: Array<string>; }} */
   const res = await req.loadJSON();
 
   const RATE_LIMIT = 429;
-  if (res.code === RATE_LIMIT) return DEFAULT_SENSOR_ID;
+  if (res.code === RATE_LIMIT) return fallbackSensorId;
 
   const { fields, data } = res;
 
@@ -99,7 +150,14 @@ async function getSensorId() {
     }
   }
 
-  return closestSensor ? closestSensor[sensorIdIndex] : DEFAULT_SENSOR_ID;
+  if (closestSensor) {
+    const id = closestSensor[sensorIdIndex];
+    cacheData("sensor.json", { id, updatedAt: Date.now() });
+
+    return id;
+  } else {
+    return fallbackSensorId;
+  }
 }
 
 /**
@@ -324,6 +382,9 @@ async function run() {
 
   try {
     const sensorId = await getSensorId();
+    if (!sensorId) {
+      throw "Please specify a location for this widget.";
+    }
     console.log(`Using sensor ID: ${sensorId}`);
 
     const data = await getSensorData(sensorId);
