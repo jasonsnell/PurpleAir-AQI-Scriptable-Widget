@@ -15,7 +15,6 @@ const API_URL = "https://www.purpleair.com";
  * @type {number}
  */
 const SENSOR_ID = args.widgetParameter;
-const DEFAULT_SENSOR_ID = 69223;
 
 /**
  * Widget attributes: AQI level threshold, text label, gradient start and end colors, text color
@@ -50,6 +49,44 @@ const DEFAULT_SENSOR_ID = 69223;
  */
 
 /**
+ * Get JSON from a local file
+ *
+ * @param {string} fileName
+ * @returns {object}
+ */
+function getCachedData(fileName) {
+  const fileManager = FileManager.local();
+  const cacheDirectory = fileManager.joinPath(fileManager.libraryDirectory(), "jsnell-aqi");
+  const cacheFile = fileManager.joinPath(cacheDirectory, fileName);
+
+  if (!fileManager.fileExists(cacheFile)) {
+    return undefined;
+  }
+
+  const contents = fileManager.readString(cacheFile);
+  return JSON.parse(contents);
+}
+
+/**
+ * Wite JSON to a local file
+ *
+ * @param {string} fileName
+ * @param {object} data
+ */
+function cacheData(fileName, data) {
+  const fileManager = FileManager.local();
+  const cacheDirectory = fileManager.joinPath(fileManager.libraryDirectory(), "jsnell-aqi");
+  const cacheFile = fileManager.joinPath(cacheDirectory, fileName);
+
+  if (!fileManager.fileExists(cacheDirectory)) {
+    fileManager.createDirectory(cacheDirectory);
+  }
+
+  const contents = JSON.stringify(data);
+  fileManager.writeString(cacheFile, contents);
+}
+
+/**
  * Get the closest PurpleAir sensorId to the given location
  *
  * @returns {Promise<number>}
@@ -57,49 +94,68 @@ const DEFAULT_SENSOR_ID = 69223;
 async function getSensorId() {
   if (SENSOR_ID) return SENSOR_ID;
 
-  /** @type {LatLon} */
-  const { latitude, longitude } = await Location.current();
+  let fallbackSensorId = undefined;
 
-  const BOUND_OFFSET = 0.05;
+  try {
+    const cachedSensor = getCachedData("sensor.json");
+    if (cachedSensor) {
+      console.log({ cachedSensor });
 
-  const nwLat = latitude + BOUND_OFFSET;
-  const seLat = latitude - BOUND_OFFSET;
-  const nwLng = longitude - BOUND_OFFSET;
-  const seLng = longitude + BOUND_OFFSET;
-
-  const req = new Request(
-    `${API_URL}/data.json?opt=1/mAQI/a10/cC5&fetch=true&nwlat=${nwLat}&selat=${seLat}&nwlng=${nwLng}&selng=${seLng}&fields=ID`
-  );
-
-  /** @type {{ code?: number; data?: Array<Array<number>>; fields?: Array<string>;  }} */
-  const res = await req.loadJSON();
-
-  const RATE_LIMIT = 429;
-  if (res.code === RATE_LIMIT) return DEFAULT_SENSOR_ID;
-
-  const { fields, data } = res;
-
-  const sensorIdIndex = fields.indexOf("ID");
-  const latIndex = fields.indexOf("Lat");
-  const lonIndex = fields.indexOf("Lon");
-  const typeIndex = fields.indexOf("Type");
-  const OUTDOOR = 0;
-
-  let closestSensor;
-  let closestDistance = Infinity;
-
-  for (const location of data.filter((datum) => datum[typeIndex] === OUTDOOR)) {
-    const distanceFromLocation = haversine(
-      { latitude, longitude },
-      { latitude: location[latIndex], longitude: location[lonIndex] }
-    );
-    if (distanceFromLocation < closestDistance) {
-      closestDistance = distanceFromLocation;
-      closestSensor = location;
+      const { id, updatedAt } = cachedSensor;
+      fallbackSensorId = id;
+      // If we've fetched the location within the last 15 minutes, just return it
+      if (Date.now() - updatedAt < 15 * 60 * 1000) {
+        return id;
+      }
     }
-  }
 
-  return closestSensor ? closestSensor[sensorIdIndex] : DEFAULT_SENSOR_ID;
+    /** @type {LatLon} */
+    const { latitude, longitude } = await Location.current();
+
+    const BOUND_OFFSET = 0.05;
+
+    const nwLat = latitude + BOUND_OFFSET;
+    const seLat = latitude - BOUND_OFFSET;
+    const nwLng = longitude - BOUND_OFFSET;
+    const seLng = longitude + BOUND_OFFSET;
+
+    const req = new Request(
+      `${API_URL}/data.json?opt=1/mAQI/a10/cC5&fetch=true&nwlat=${nwLat}&selat=${seLat}&nwlng=${nwLng}&selng=${seLng}&fields=ID`
+    );
+
+    /** @type {{ code?: number; data?: Array<Array<number>>; fields?: Array<string>; }} */
+    const res = await req.loadJSON();
+
+    const { fields, data } = res;
+
+    const sensorIdIndex = fields.indexOf("ID");
+    const latIndex = fields.indexOf("Lat");
+    const lonIndex = fields.indexOf("Lon");
+    const typeIndex = fields.indexOf("Type");
+    const OUTDOOR = 0;
+
+    let closestSensor;
+    let closestDistance = Infinity;
+
+    for (const location of data.filter((datum) => datum[typeIndex] === OUTDOOR)) {
+      const distanceFromLocation = haversine(
+        { latitude, longitude },
+        { latitude: location[latIndex], longitude: location[lonIndex] }
+      );
+      if (distanceFromLocation < closestDistance) {
+        closestDistance = distanceFromLocation;
+        closestSensor = location;
+      }
+    }
+
+    const id = closestSensor[sensorIdIndex];
+    cacheData("sensor.json", { id, updatedAt: Date.now() });
+
+    return id;
+  } catch (error) {
+    console.log(`Could not fetch location: ${error}`);
+    return fallbackSensorId;
+  }
 }
 
 /**
@@ -145,6 +201,27 @@ async function getSensorData(sensorId) {
     lon: json.results[0].Lon,
   };
 }
+
+/**
+ * Fetch reverse geocode
+ *
+ * @param {string} lat
+ * @param {string} lon
+ * @returns {Promise<GeospatialData>}
+ */
+async function getGeoData(lat, lon) {
+  const providerUrl = 'https://geocode.xyz/'
+  const req = new Request(`${providerUrl}${lat},${lon}?geoit=json`);
+  const json = await req.loadJSON();
+
+  return {
+    city: json.city,
+    state: json.state,
+    stateName: json.statename,
+    zip: json.postal,
+  };
+}
+
 
 /** @type {Array<LevelAttribute>} sorted by threshold desc. */
 const LEVEL_ATTRIBUTES = [
@@ -294,6 +371,20 @@ function calculateLevel(aqi) {
 }
 
 /**
+ * Text to title case
+ * @returns {string}
+ */
+
+function toTitleCase(str) {
+  return str.replace(
+    /\w\S*/g,
+    function(txt) {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    }
+  );
+}
+
+/**
  * Get the AQI trend
  *
  * @param {{ v1: number; v3: number; }} stats
@@ -314,7 +405,7 @@ function getAQITrend({ v1: partLive, v3: partTime }) {
  */
 function createSymbol(symbolName) {
   const symbol = SFSymbol.named(symbolName);
-  symbol.applyFont(Font.systemFont(20));
+  symbol.applyFont(Font.systemFont(14));
   return symbol;
 }
 
@@ -324,6 +415,9 @@ async function run() {
 
   try {
     const sensorId = await getSensorId();
+    if (!sensorId) {
+      throw "Please specify a location for this widget.";
+    }
     console.log(`Using sensor ID: ${sensorId}`);
 
     const data = await getSensorData(sensorId);
@@ -362,47 +456,51 @@ async function run() {
 
     listWidget.backgroundGradient = gradient;
 
-    const header = listWidget.addText("Air Quality");
+    const header = listWidget.addText('Air Quality'.toUpperCase());
     header.textColor = textColor;
-    header.font = Font.regularSystemFont(14);
-
+    header.font = Font.regularSystemFont(11);
+    header.minimumScaleFactor = 0.50;
+    
+    const wordLevel = listWidget.addText(level.label);
+    wordLevel.textColor = textColor;
+    wordLevel.font = Font.semiboldSystemFont(25);
+    wordLevel.minimumScaleFactor = 0.3;
+    
     listWidget.addSpacer(5);
 
     const scoreStack = listWidget.addStack();
     const content = scoreStack.addText(aqiText);
     content.textColor = textColor;
-    content.font = Font.mediumSystemFont(30);
+    content.font = Font.semiboldSystemFont(30);
     const trendSymbol = createSymbol(aqiTrend);
     const trendImg = scoreStack.addImage(trendSymbol.image);
     trendImg.resizable = false;
     trendImg.tintColor = textColor;
-    trendImg.imageSize = new Size(30, 38);
-
-    const wordLevel = listWidget.addText(level.label);
-    wordLevel.textColor = textColor;
-    wordLevel.font = Font.semiboldSystemFont(24);
-    wordLevel.minimumScaleFactor = 0.3;
+    trendImg.imageSize = new Size(30, 28);
 
     listWidget.addSpacer(10);
+    
+    const geoData = await getGeoData(data.lat, data.lon)
+    const locationText = listWidget.addText(toTitleCase(geoData.city) );
+    locationText.textColor = textColor;
+    locationText.font = Font.regularSystemFont(14);
+	 locationText.minimumScaleFactor = 0.5;
 
-    const location = listWidget.addText(data.loc);
-    location.textColor = textColor;
-    location.font = Font.regularSystemFont(13);
-    location.minimumScaleFactor = 0.5;
+	listWidget.addSpacer(2);
 
     const updatedAt = new Date(data.ts * 1000).toLocaleTimeString([], {
-      hour: "2-digit",
+      hour: "numeric",
       minute: "2-digit",
     });
     const widgetText = listWidget.addText(`Updated ${updatedAt}`);
     widgetText.textColor = textColor;
-    widgetText.font = Font.regularSystemFont(10);
-    widgetText.minimumScaleFactor = 0.5;
+    widgetText.font = Font.regularSystemFont(9);
+    widgetText.minimumScaleFactor = 0.6;
 
     const purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5&select=${sensorId}#14/${data.lat}/${data.lon}`;
     listWidget.url = purpleMapUrl;
   } catch (error) {
-    console.log(error);
+    console.log(`Could not render widget: ${error}`);
 
     const errorWidgetText = listWidget.addText(`${error}`);
     errorWidgetText.textColor = Color.red();
