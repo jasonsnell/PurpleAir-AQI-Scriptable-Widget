@@ -2,7 +2,7 @@
 
 <img src="https://mt.sixcolors.com//images/IMG_0379.jpg" width="400" />
 
-Project operated by Jason Snell <jsnell@sixcolors.com> with enormous code contributions from Matt Silverlock, Rob Silverii, Adam Lickel, Alexander Ogilvie, and Brian Donovan.
+Project operated by Jason Snell <jsnell@sixcolors.com> with enormous code contributions from Matt Silverlock, Rob Silverii, Adam Lickel, Alexander Ogilvie, Brian Donovan, Jon Sadka, and an anoynmous Apple employee with good color sense.
 
 ## About this project
 
