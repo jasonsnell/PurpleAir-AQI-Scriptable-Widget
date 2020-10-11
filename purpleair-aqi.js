@@ -187,8 +187,12 @@ function haversine(start, end) {
  * @returns {Promise<SensorData>}
  */
 async function getSensorData(sensorId) {
+
   const req = new Request(`${API_URL}/json?show=${sensorId}`);
-  const json = await req.loadJSON();
+
+    const json = await req.loadJSON();
+
+  try {
 
   return {
     val: json.results[0].Stats,
@@ -200,6 +204,17 @@ async function getSensorData(sensorId) {
     lat: json.results[0].Lat,
     lon: json.results[0].Lon,
   };
+   } catch (error) {
+    console.log(`Could not parse JSON: ${error}`);
+
+  return {
+    val: 666,
+  };
+
+  }
+
+
+
 }
 
 /**
@@ -355,8 +370,8 @@ function calculateLevel(aqi) {
     darkStartColor = "009900",
     darkEndColor = "007700",
     darkTextColor = "000000",
-    threshold = -Infinity,
-  } = LEVEL_ATTRIBUTES.find(({ threshold }) => level > threshold) || {};
+    threshold,
+  } = LEVEL_ATTRIBUTES.find(({ threshold }) => level > threshold);
 
   return {
     label,
@@ -406,7 +421,7 @@ function getAQITrend({ v1: partLive, v3: partTime }) {
  */
 function createSymbol(symbolName) {
   const symbol = SFSymbol.named(symbolName);
-  symbol.applyFont(Font.systemFont(14));
+  symbol.applyFont(Font.systemFont(15));
   return symbol;
 }
 
@@ -422,6 +437,25 @@ async function run() {
     console.log(`Using sensor ID: ${sensorId}`);
 
     const data = await getSensorData(sensorId);
+    
+    if (data.val == 666) {
+
+      listWidget.background = new Color('999999');
+      
+    const header = listWidget.addText('Error'.toUpperCase());
+    header.textColor = new Color('000000');
+    header.font = Font.regularSystemFont(11);
+    header.minimumScaleFactor = 0.50;
+
+    listWidget.addSpacer(15);
+
+    const wordLevel = listWidget.addText(`Couldn't connect to the server.`);
+    wordLevel.textColor = new Color ('000000');
+    wordLevel.font = Font.semiboldSystemFont(15);
+    wordLevel.minimumScaleFactor = 0.3;
+    
+  } else {
+      
     const stats = JSON.parse(data.val);
     console.log({ stats });
 
@@ -477,7 +511,7 @@ async function run() {
     const trendImg = scoreStack.addImage(trendSymbol.image);
     trendImg.resizable = false;
     trendImg.tintColor = textColor;
-    trendImg.imageSize = new Size(30, 28);
+    trendImg.imageSize = new Size(28, 30);
 
     listWidget.addSpacer(10);
     
@@ -500,7 +534,10 @@ async function run() {
 
     const purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5&select=${sensorId}#14/${data.lat}/${data.lon}`;
     listWidget.url = purpleMapUrl;
-  } catch (error) {
+ 
+}
+
+   } catch (error) {
     console.log(`Could not render widget: ${error}`);
 
     const errorWidgetText = listWidget.addText(`${error}`);
