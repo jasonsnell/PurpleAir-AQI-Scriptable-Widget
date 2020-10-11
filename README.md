@@ -1,6 +1,6 @@
 # PurpleAir-AQI-Scriptable-Widget
 
-<img src="https://sixcolors.com/wp-content/uploads/2020/10/widget-44.jpg" width="400" />
+<img src="https://mt.sixcolors.com//images/IMG_0379.jpg" width="400" />
 
 Project operated by Jason Snell <jsnell@sixcolors.com> with enormous code contributions from Matt Silverlock, Rob Silverii, Adam Lickel, Alexander Ogilvie, and Brian Donovan.
 
@@ -16,7 +16,7 @@ To use this widget, make a new script inside Scriptable and paste in the content
 
 You can run the script from within the app, or add a new Small widget on your home screen, set it to Scriptable, and choose the script by tapping and holding on the widget, choosing Edit Widget, and choosing the script by tapping on the Script field. 
 
-If you don't specify the sensor ID of a nearby PurpleAir sensor, the script will attempt to display information from the one closest to you. To have the widget use a specific PurpleAir sensor ID, tap and hold on the widget, choose Edit Widget, and enter the sensor ID in the Parameter section. (To find a sensor ID, go to the PurpleAir map and tap or click on a station near you. The URL in your browser should change to the new selection. A four- or five-digit number will appear just after "select=" and that's the number to enter in to the Parameter field.)
+If you don't specify the sensor ID of a nearby PurpleAir sensor, _the script will attempt to display information from the one closest to you_. To have the widget use a specific PurpleAir sensor ID, tap and hold on the widget, choose Edit Widget, and **enter the sensor ID in the Parameter section**. (To find a sensor ID, go to the PurpleAir map and tap or click on a station near you. The URL in your browser should change to the new selection. A four- or five-digit number will appear just after "select=" and that's the number to enter in to the Parameter field.)
 
 ## How does this widget calculate AQI?
 
