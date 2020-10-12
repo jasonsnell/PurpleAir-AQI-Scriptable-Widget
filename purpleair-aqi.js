@@ -216,15 +216,16 @@ async function getSensorData(sensorId) {
  * @returns {Promise<GeospatialData>}
  */
 async function getGeoData(lat, lon) {
-  const providerUrl = 'https://geocode.xyz/'
-  const req = new Request(`${providerUrl}${lat},${lon}?geoit=json`);
-  const json = await req.loadJSON();
+  const latitude = Number.parseFloat(lat);
+  const longitude = Number.parseFloat(lon);
+
+  const geo = await Location.reverseGeocode(latitude, longitude);
+  console.log({ geo: geo });
 
   return {
-    city: json.city,
-    state: json.state,
-    stateName: json.statename,
-    zip: json.postal,
+    neighborhood: geo[0].subLocality,
+    city: geo[0].subAdministrativeArea,
+    state: geo[0].administrativeArea,
   };
 }
 
@@ -237,7 +238,13 @@ async function getGeoData(lat, lon) {
 async function getLocation(data) {
   try {
     const geoData = await getGeoData(data.lat, data.lon);
-    return toTitleCase(geoData.city);
+    console.log({ geoData });
+
+    if (geoData.neighborhood && geoData.city) {
+        return `${geoData.neighborhood}, ${geoData.city}`;
+    } else {
+        return geoData.city || data.loc;
+    }
   } catch (error) {
     console.log(`Could not cleanup location: ${error}`);
     return data.loc;
@@ -390,19 +397,6 @@ function calculateLevel(aqi) {
     threshold,
     level,
   };
-}
-
-/**
- * Text to title case
- * @returns {string}
- */
-function toTitleCase(str) {
-  return str.replace(
-    /\w\S*/g,
-    function(txt) {
-      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-    }
-  );
 }
 
 /**
