@@ -189,32 +189,25 @@ function haversine(start, end) {
 async function getSensorData(sensorId) {
 
   const req = new Request(`${API_URL}/json?show=${sensorId}`);
-
-    const json = await req.loadJSON();
+  const json = await req.loadJSON();
 
   try {
-
-  return {
-    val: json.results[0].Stats,
-    adj1: json.results[0].pm2_5_cf_1,
-    adj2: json.results[1].pm2_5_cf_1,
-    ts: json.results[0].LastSeen,
-    hum: json.results[0].humidity,
-    loc: json.results[0].Label,
-    lat: json.results[0].Lat,
-    lon: json.results[0].Lon,
-  };
-   } catch (error) {
+    return {
+      val: json.results[0].Stats,
+      adj1: json.results[0].pm2_5_cf_1,
+      adj2: json.results[1].pm2_5_cf_1,
+      ts: json.results[0].LastSeen,
+      hum: json.results[0].humidity,
+      loc: json.results[0].Label,
+      lat: json.results[0].Lat,
+      lon: json.results[0].Lon,
+    };
+  } catch (error) {
     console.log(`Could not parse JSON: ${error}`);
-
-  return {
-    val: 666,
-  };
-
+    return {
+      val: 666,
+    };
   }
-
-
-
 }
 
 /**
@@ -237,6 +230,21 @@ async function getGeoData(lat, lon) {
   };
 }
 
+/**
+ * Fetch a renderable location
+ *
+ * @param {SensorData} data
+ * @returns {Promise<String>}
+ */
+async function getLocation(data) {
+  try {
+    const geoData = await getGeoData(data.lat, data.lon);
+    return toTitleCase(geoData.city);
+  } catch (error) {
+    console.log(`Could not cleanup location: ${error}`);
+    return data.loc;
+  }
+}
 
 /** @type {Array<LevelAttribute>} sorted by threshold desc. */
 const LEVEL_ATTRIBUTES = [
@@ -390,7 +398,6 @@ function calculateLevel(aqi) {
  * Text to title case
  * @returns {string}
  */
-
 function toTitleCase(str) {
   return str.replace(
     /\w\S*/g,
@@ -437,117 +444,106 @@ async function run() {
     console.log(`Using sensor ID: ${sensorId}`);
 
     const data = await getSensorData(sensorId);
-    
+
     if (data.val == 666) {
 
       listWidget.background = new Color('999999');
-      
-    const header = listWidget.addText('Error'.toUpperCase());
-    header.textColor = new Color('000000');
-    header.font = Font.regularSystemFont(11);
-    header.minimumScaleFactor = 0.50;
+      const header = listWidget.addText('Error'.toUpperCase());
+      header.textColor = new Color('000000');
+      header.font = Font.regularSystemFont(11);
+      header.minimumScaleFactor = 0.50;
 
-    listWidget.addSpacer(15);
+      listWidget.addSpacer(15);
 
-    const wordLevel = listWidget.addText(`Couldn't connect to the server.`);
-    wordLevel.textColor = new Color ('000000');
-    wordLevel.font = Font.semiboldSystemFont(15);
-    wordLevel.minimumScaleFactor = 0.3;
-    
-  } else {
-      
-    const stats = JSON.parse(data.val);
-    console.log({ stats });
+      const wordLevel = listWidget.addText(`Couldn't connect to the server.`);
+      wordLevel.textColor = new Color ('000000');
+      wordLevel.font = Font.semiboldSystemFont(15);
+      wordLevel.minimumScaleFactor = 0.3;
 
-    const aqiTrend = getAQITrend(stats);
-    console.log({ aqiTrend });
+    } else {
 
-    const epaPM = computePM(data);
-    console.log({ epaPM });
+      const stats = JSON.parse(data.val);
+      console.log({ stats });
 
-    const aqi = aqiFromPM(epaPM);
-    const level = calculateLevel(aqi);
-    const aqiText = aqi.toString();
-    console.log({ aqi });
+      const aqiTrend = getAQITrend(stats);
+      console.log({ aqiTrend });
 
-    const isDarkMode = Device.isUsingDarkAppearance();
+      const epaPM = computePM(data);
+      console.log({ epaPM });
 
-    const startColor = new Color(
-      isDarkMode ? level.darkStartColor : level.startColor
-    );
-    const endColor = new Color(
-      isDarkMode ? level.darkEndColor : level.endColor
-    );
-    const textColor = new Color(
-      isDarkMode ? level.darkTextColor : level.textColor
-    );
-    const gradient = new LinearGradient();
+      const aqi = aqiFromPM(epaPM);
+      const level = calculateLevel(aqi);
+      const aqiText = aqi.toString();
+      console.log({ aqi });
 
-    console.log(`${isDarkMode ? "dark" : "light"} mode`);
+      const sensorLocation = await getLocation(data)
+      console.log({ sensorLocation });
 
-    gradient.colors = [startColor, endColor];
-    gradient.locations = [0.0, 1];
-    console.log({ gradient });
+      const isDarkMode = Device.isUsingDarkAppearance();
 
-    listWidget.backgroundGradient = gradient;
+      const startColor = new Color(
+        isDarkMode ? level.darkStartColor : level.startColor
+      );
+      const endColor = new Color(
+        isDarkMode ? level.darkEndColor : level.endColor
+      );
+      const textColor = new Color(
+        isDarkMode ? level.darkTextColor : level.textColor
+      );
+      const gradient = new LinearGradient();
 
-    const header = listWidget.addText('Air Quality'.toUpperCase());
-    header.textColor = textColor;
-    header.font = Font.regularSystemFont(11);
-    header.minimumScaleFactor = 0.50;
-    
-    const wordLevel = listWidget.addText(level.label);
-    wordLevel.textColor = textColor;
-    wordLevel.font = Font.semiboldSystemFont(25);
-    wordLevel.minimumScaleFactor = 0.3;
-    
-    listWidget.addSpacer(5);
+      console.log(`${isDarkMode ? "dark" : "light"} mode`);
 
-    const scoreStack = listWidget.addStack();
-    const content = scoreStack.addText(aqiText);
-    content.textColor = textColor;
-    content.font = Font.semiboldSystemFont(30);
-    const trendSymbol = createSymbol(aqiTrend);
-    const trendImg = scoreStack.addImage(trendSymbol.image);
-    trendImg.resizable = false;
-    trendImg.tintColor = textColor;
-    trendImg.imageSize = new Size(28, 30);
+      gradient.colors = [startColor, endColor];
+      gradient.locations = [0.0, 1];
+      console.log({ gradient });
 
-    listWidget.addSpacer(10);
-    
-    const geoData = await getGeoData(data.lat, data.lon)
-    
-    try {
-    const locationText = listWidget.addText(toTitleCase(geoData.city) );
-    locationText.textColor = textColor;
-    locationText.font = Font.regularSystemFont(14);
-	 locationText.minimumScaleFactor = 0.5;
+      listWidget.backgroundGradient = gradient;
 
+      const header = listWidget.addText('Air Quality'.toUpperCase());
+      header.textColor = textColor;
+      header.font = Font.regularSystemFont(11);
+      header.minimumScaleFactor = 0.50;
+
+      const wordLevel = listWidget.addText(level.label);
+      wordLevel.textColor = textColor;
+      wordLevel.font = Font.semiboldSystemFont(25);
+      wordLevel.minimumScaleFactor = 0.3;
+
+      listWidget.addSpacer(5);
+
+      const scoreStack = listWidget.addStack();
+      const content = scoreStack.addText(aqiText);
+      content.textColor = textColor;
+      content.font = Font.semiboldSystemFont(30);
+      const trendSymbol = createSymbol(aqiTrend);
+      const trendImg = scoreStack.addImage(trendSymbol.image);
+      trendImg.resizable = false;
+      trendImg.tintColor = textColor;
+      trendImg.imageSize = new Size(28, 30);
+
+      listWidget.addSpacer(10);
+
+      const locationText = listWidget.addText(sensorLocation);
+      locationText.textColor = textColor;
+      locationText.font = Font.regularSystemFont(14);
+      locationText.minimumScaleFactor = 0.5;
+
+      listWidget.addSpacer(2);
+
+      const updatedAt = new Date(data.ts * 1000).toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+      const widgetText = listWidget.addText(`Updated ${updatedAt}`);
+      widgetText.textColor = textColor;
+      widgetText.font = Font.regularSystemFont(9);
+      widgetText.minimumScaleFactor = 0.6;
+
+      const purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5&select=${sensorId}#14/${data.lat}/${data.lon}`;
+      listWidget.url = purpleMapUrl;
+    }
   } catch (error) {
-    const locationText = listWidget.addText(data.loc);
-    locationText.textColor = textColor;
-    locationText.font = Font.regularSystemFont(14);
-	 locationText.minimumScaleFactor = 0.5;
-
-  }
-
-	listWidget.addSpacer(2);
-
-    const updatedAt = new Date(data.ts * 1000).toLocaleTimeString([], {
-      hour: "numeric",
-      minute: "2-digit",
-    });
-    const widgetText = listWidget.addText(`Updated ${updatedAt}`);
-    widgetText.textColor = textColor;
-    widgetText.font = Font.regularSystemFont(9);
-    widgetText.minimumScaleFactor = 0.6;
-
-    const purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5&select=${sensorId}#14/${data.lat}/${data.lon}`;
-    listWidget.url = purpleMapUrl;
- 
-}
-
-   } catch (error) {
     console.log(`Could not render widget: ${error}`);
 
     const errorWidgetText = listWidget.addText(`${error}`);
