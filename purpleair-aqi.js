@@ -370,8 +370,8 @@ function calculateLevel(aqi) {
     darkStartColor = "009900",
     darkEndColor = "007700",
     darkTextColor = "000000",
-    threshold,
-  } = LEVEL_ATTRIBUTES.find(({ threshold }) => level > threshold);
+    threshold = -Infinity,
+  } = LEVEL_ATTRIBUTES.find(({ threshold }) => level > threshold) || {};
 
   return {
     label,
