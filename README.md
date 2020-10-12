@@ -1,8 +1,8 @@
 # PurpleAir-AQI-Scriptable-Widget
 
-<img src="https://mt.sixcolors.com//images/IMG_0379.jpg" width="400" />
+<img src="https://sixcolors.com/wp-content/uploads/2020/10/widget-latest.jpeg" width="600" />
 
-Project operated by Jason Snell <jsnell@sixcolors.com> with enormous code contributions from Matt Silverlock, Rob Silverii, Adam Lickel, Alexander Ogilvie, Brian Donovan, Jon Sadka, and an anonymous Apple employee with good color sense.
+Project operated by Jason Snell <jsnell@sixcolors.com> with enormous contributions from Matt Silverlock, Rob Silverii, Adam Lickel, Alexander Ogilvie, Brian Donovan, Jon Sadka, and anonymous others!
 
 ## About this project
 
@@ -29,3 +29,4 @@ PurpleAir refers to this calculation as **US EPA**, which you can choose from th
 The words and colors! Earlier versions of this widget had a larger display for the numbers and a smaller display for the condition level, but the real point of AQI isn't a precise number, it's getting the level -- the words and color -- in the right zone. 
 
 But we all like numbers, so it displays a number too. Also, the widget does display a trend if one exists, so if you're in volatile conditions, you should be able to tell at a glance if your air quality is improving or worsening.
+
