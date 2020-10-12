@@ -516,10 +516,20 @@ async function run() {
     listWidget.addSpacer(10);
     
     const geoData = await getGeoData(data.lat, data.lon)
+    
+    try {
     const locationText = listWidget.addText(toTitleCase(geoData.city) );
     locationText.textColor = textColor;
     locationText.font = Font.regularSystemFont(14);
 	 locationText.minimumScaleFactor = 0.5;
+
+  } catch (error) {
+    const locationText = listWidget.addText(data.loc);
+    locationText.textColor = textColor;
+    locationText.font = Font.regularSystemFont(14);
+	 locationText.minimumScaleFactor = 0.5;
+
+  }
 
 	listWidget.addSpacer(2);
 
