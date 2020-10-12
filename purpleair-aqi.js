@@ -189,32 +189,23 @@ function haversine(start, end) {
 async function getSensorData(sensorId) {
 
   const req = new Request(`${API_URL}/json?show=${sensorId}`);
-
-    const json = await req.loadJSON();
+  const json = await req.loadJSON();
 
   try {
-
-  return {
-    val: json.results[0].Stats,
-    adj1: json.results[0].pm2_5_cf_1,
-    adj2: json.results[1].pm2_5_cf_1,
-    ts: json.results[0].LastSeen,
-    hum: json.results[0].humidity,
-    loc: json.results[0].Label,
-    lat: json.results[0].Lat,
-    lon: json.results[0].Lon,
-  };
-   } catch (error) {
+    return {
+      val: json.results[0].Stats,
+      adj1: json.results[0].pm2_5_cf_1,
+      adj2: json.results[1].pm2_5_cf_1,
+      ts: json.results[0].LastSeen,
+      hum: json.results[0].humidity,
+      loc: json.results[0].Label,
+      lat: json.results[0].Lat,
+      lon: json.results[0].Lon,
+    };
+  } catch (error) {
     console.log(`Could not parse JSON: ${error}`);
-
-  return {
-    val: 666,
-  };
-
+    throw 666;
   }
-
-
-
 }
 
 /**
@@ -225,18 +216,40 @@ async function getSensorData(sensorId) {
  * @returns {Promise<GeospatialData>}
  */
 async function getGeoData(lat, lon) {
-  const providerUrl = 'https://geocode.xyz/'
-  const req = new Request(`${providerUrl}${lat},${lon}?geoit=json`);
-  const json = await req.loadJSON();
+  const latitude = Number.parseFloat(lat);
+  const longitude = Number.parseFloat(lon);
+
+  const geo = await Location.reverseGeocode(latitude, longitude);
+  console.log({ geo: geo });
 
   return {
-    city: json.city,
-    state: json.state,
-    stateName: json.statename,
-    zip: json.postal,
+    neighborhood: geo[0].subLocality,
+    city: geo[0].subAdministrativeArea,
+    state: geo[0].administrativeArea,
   };
 }
 
+/**
+ * Fetch a renderable location
+ *
+ * @param {SensorData} data
+ * @returns {Promise<String>}
+ */
+async function getLocation(data) {
+  try {
+    const geoData = await getGeoData(data.lat, data.lon);
+    console.log({ geoData });
+
+    if (geoData.neighborhood && geoData.city) {
+        return `${geoData.neighborhood}, ${geoData.city}`;
+    } else {
+        return geoData.city || data.loc;
+    }
+  } catch (error) {
+    console.log(`Could not cleanup location: ${error}`);
+    return data.loc;
+  }
+}
 
 /** @type {Array<LevelAttribute>} sorted by threshold desc. */
 const LEVEL_ATTRIBUTES = [
@@ -387,20 +400,6 @@ function calculateLevel(aqi) {
 }
 
 /**
- * Text to title case
- * @returns {string}
- */
-
-function toTitleCase(str) {
-  return str.replace(
-    /\w\S*/g,
-    function(txt) {
-      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-    }
-  );
-}
-
-/**
  * Get the AQI trend
  *
  * @param {{ v1: number; v3: number; }} stats
@@ -437,25 +436,7 @@ async function run() {
     console.log(`Using sensor ID: ${sensorId}`);
 
     const data = await getSensorData(sensorId);
-    
-    if (data.val == 666) {
 
-      listWidget.background = new Color('999999');
-      
-    const header = listWidget.addText('Error'.toUpperCase());
-    header.textColor = new Color('000000');
-    header.font = Font.regularSystemFont(11);
-    header.minimumScaleFactor = 0.50;
-
-    listWidget.addSpacer(15);
-
-    const wordLevel = listWidget.addText(`Couldn't connect to the server.`);
-    wordLevel.textColor = new Color ('000000');
-    wordLevel.font = Font.semiboldSystemFont(15);
-    wordLevel.minimumScaleFactor = 0.3;
-    
-  } else {
-      
     const stats = JSON.parse(data.val);
     console.log({ stats });
 
@@ -469,6 +450,9 @@ async function run() {
     const level = calculateLevel(aqi);
     const aqiText = aqi.toString();
     console.log({ aqi });
+
+    const sensorLocation = await getLocation(data)
+    console.log({ sensorLocation });
 
     const isDarkMode = Device.isUsingDarkAppearance();
 
@@ -495,12 +479,12 @@ async function run() {
     header.textColor = textColor;
     header.font = Font.regularSystemFont(11);
     header.minimumScaleFactor = 0.50;
-    
+
     const wordLevel = listWidget.addText(level.label);
     wordLevel.textColor = textColor;
     wordLevel.font = Font.semiboldSystemFont(25);
     wordLevel.minimumScaleFactor = 0.3;
-    
+
     listWidget.addSpacer(5);
 
     const scoreStack = listWidget.addStack();
@@ -514,24 +498,13 @@ async function run() {
     trendImg.imageSize = new Size(28, 30);
 
     listWidget.addSpacer(10);
-    
-    const geoData = await getGeoData(data.lat, data.lon)
-    
-    try {
-    const locationText = listWidget.addText(toTitleCase(geoData.city) );
+
+    const locationText = listWidget.addText(sensorLocation);
     locationText.textColor = textColor;
     locationText.font = Font.regularSystemFont(14);
-	 locationText.minimumScaleFactor = 0.5;
+    locationText.minimumScaleFactor = 0.5;
 
-  } catch (error) {
-    const locationText = listWidget.addText(data.loc);
-    locationText.textColor = textColor;
-    locationText.font = Font.regularSystemFont(14);
-	 locationText.minimumScaleFactor = 0.5;
-
-  }
-
-	listWidget.addSpacer(2);
+    listWidget.addSpacer(2);
 
     const updatedAt = new Date(data.ts * 1000).toLocaleTimeString([], {
       hour: "numeric",
@@ -544,16 +517,30 @@ async function run() {
 
     const purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5&select=${sensorId}#14/${data.lat}/${data.lon}`;
     listWidget.url = purpleMapUrl;
- 
-}
+  } catch (error) {
+    if (error === 666) {
+      // Handle JSON parsing errors with a custom error layout
 
-   } catch (error) {
-    console.log(`Could not render widget: ${error}`);
+      listWidget.background = new Color('999999');
+      const header = listWidget.addText('Error'.toUpperCase());
+      header.textColor = new Color('000000');
+      header.font = Font.regularSystemFont(11);
+      header.minimumScaleFactor = 0.50;
 
-    const errorWidgetText = listWidget.addText(`${error}`);
-    errorWidgetText.textColor = Color.red();
-    errorWidgetText.textOpacity = 30;
-    errorWidgetText.font = Font.regularSystemFont(10);
+      listWidget.addSpacer(15);
+
+      const wordLevel = listWidget.addText(`Couldn't connect to the server.`);
+      wordLevel.textColor = new Color ('000000');
+      wordLevel.font = Font.semiboldSystemFont(15);
+      wordLevel.minimumScaleFactor = 0.3;
+    } else {
+      console.log(`Could not render widget: ${error}`);
+
+      const errorWidgetText = listWidget.addText(`${error}`);
+      errorWidgetText.textColor = Color.red();
+      errorWidgetText.textOpacity = 30;
+      errorWidgetText.font = Font.regularSystemFont(10);
+    }
   }
 
   if (config.runsInApp) {
