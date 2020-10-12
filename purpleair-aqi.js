@@ -204,9 +204,7 @@ async function getSensorData(sensorId) {
     };
   } catch (error) {
     console.log(`Could not parse JSON: ${error}`);
-    return {
-      val: 666,
-    };
+    throw 666;
   }
 }
 
@@ -445,7 +443,89 @@ async function run() {
 
     const data = await getSensorData(sensorId);
 
-    if (data.val == 666) {
+    const stats = JSON.parse(data.val);
+    console.log({ stats });
+
+    const aqiTrend = getAQITrend(stats);
+    console.log({ aqiTrend });
+
+    const epaPM = computePM(data);
+    console.log({ epaPM });
+
+    const aqi = aqiFromPM(epaPM);
+    const level = calculateLevel(aqi);
+    const aqiText = aqi.toString();
+    console.log({ aqi });
+
+    const sensorLocation = await getLocation(data)
+    console.log({ sensorLocation });
+
+    const isDarkMode = Device.isUsingDarkAppearance();
+
+    const startColor = new Color(
+      isDarkMode ? level.darkStartColor : level.startColor
+    );
+    const endColor = new Color(
+      isDarkMode ? level.darkEndColor : level.endColor
+    );
+    const textColor = new Color(
+      isDarkMode ? level.darkTextColor : level.textColor
+    );
+    const gradient = new LinearGradient();
+
+    console.log(`${isDarkMode ? "dark" : "light"} mode`);
+
+    gradient.colors = [startColor, endColor];
+    gradient.locations = [0.0, 1];
+    console.log({ gradient });
+
+    listWidget.backgroundGradient = gradient;
+
+    const header = listWidget.addText('Air Quality'.toUpperCase());
+    header.textColor = textColor;
+    header.font = Font.regularSystemFont(11);
+    header.minimumScaleFactor = 0.50;
+
+    const wordLevel = listWidget.addText(level.label);
+    wordLevel.textColor = textColor;
+    wordLevel.font = Font.semiboldSystemFont(25);
+    wordLevel.minimumScaleFactor = 0.3;
+
+    listWidget.addSpacer(5);
+
+    const scoreStack = listWidget.addStack();
+    const content = scoreStack.addText(aqiText);
+    content.textColor = textColor;
+    content.font = Font.semiboldSystemFont(30);
+    const trendSymbol = createSymbol(aqiTrend);
+    const trendImg = scoreStack.addImage(trendSymbol.image);
+    trendImg.resizable = false;
+    trendImg.tintColor = textColor;
+    trendImg.imageSize = new Size(28, 30);
+
+    listWidget.addSpacer(10);
+
+    const locationText = listWidget.addText(sensorLocation);
+    locationText.textColor = textColor;
+    locationText.font = Font.regularSystemFont(14);
+    locationText.minimumScaleFactor = 0.5;
+
+    listWidget.addSpacer(2);
+
+    const updatedAt = new Date(data.ts * 1000).toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    const widgetText = listWidget.addText(`Updated ${updatedAt}`);
+    widgetText.textColor = textColor;
+    widgetText.font = Font.regularSystemFont(9);
+    widgetText.minimumScaleFactor = 0.6;
+
+    const purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5&select=${sensorId}#14/${data.lat}/${data.lon}`;
+    listWidget.url = purpleMapUrl;
+  } catch (error) {
+    if (error === 666) {
+      // Handle JSON parsing errors with a custom error layout
 
       listWidget.background = new Color('999999');
       const header = listWidget.addText('Error'.toUpperCase());
@@ -459,97 +539,14 @@ async function run() {
       wordLevel.textColor = new Color ('000000');
       wordLevel.font = Font.semiboldSystemFont(15);
       wordLevel.minimumScaleFactor = 0.3;
-
     } else {
+      console.log(`Could not render widget: ${error}`);
 
-      const stats = JSON.parse(data.val);
-      console.log({ stats });
-
-      const aqiTrend = getAQITrend(stats);
-      console.log({ aqiTrend });
-
-      const epaPM = computePM(data);
-      console.log({ epaPM });
-
-      const aqi = aqiFromPM(epaPM);
-      const level = calculateLevel(aqi);
-      const aqiText = aqi.toString();
-      console.log({ aqi });
-
-      const sensorLocation = await getLocation(data)
-      console.log({ sensorLocation });
-
-      const isDarkMode = Device.isUsingDarkAppearance();
-
-      const startColor = new Color(
-        isDarkMode ? level.darkStartColor : level.startColor
-      );
-      const endColor = new Color(
-        isDarkMode ? level.darkEndColor : level.endColor
-      );
-      const textColor = new Color(
-        isDarkMode ? level.darkTextColor : level.textColor
-      );
-      const gradient = new LinearGradient();
-
-      console.log(`${isDarkMode ? "dark" : "light"} mode`);
-
-      gradient.colors = [startColor, endColor];
-      gradient.locations = [0.0, 1];
-      console.log({ gradient });
-
-      listWidget.backgroundGradient = gradient;
-
-      const header = listWidget.addText('Air Quality'.toUpperCase());
-      header.textColor = textColor;
-      header.font = Font.regularSystemFont(11);
-      header.minimumScaleFactor = 0.50;
-
-      const wordLevel = listWidget.addText(level.label);
-      wordLevel.textColor = textColor;
-      wordLevel.font = Font.semiboldSystemFont(25);
-      wordLevel.minimumScaleFactor = 0.3;
-
-      listWidget.addSpacer(5);
-
-      const scoreStack = listWidget.addStack();
-      const content = scoreStack.addText(aqiText);
-      content.textColor = textColor;
-      content.font = Font.semiboldSystemFont(30);
-      const trendSymbol = createSymbol(aqiTrend);
-      const trendImg = scoreStack.addImage(trendSymbol.image);
-      trendImg.resizable = false;
-      trendImg.tintColor = textColor;
-      trendImg.imageSize = new Size(28, 30);
-
-      listWidget.addSpacer(10);
-
-      const locationText = listWidget.addText(sensorLocation);
-      locationText.textColor = textColor;
-      locationText.font = Font.regularSystemFont(14);
-      locationText.minimumScaleFactor = 0.5;
-
-      listWidget.addSpacer(2);
-
-      const updatedAt = new Date(data.ts * 1000).toLocaleTimeString([], {
-        hour: "numeric",
-        minute: "2-digit",
-      });
-      const widgetText = listWidget.addText(`Updated ${updatedAt}`);
-      widgetText.textColor = textColor;
-      widgetText.font = Font.regularSystemFont(9);
-      widgetText.minimumScaleFactor = 0.6;
-
-      const purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5&select=${sensorId}#14/${data.lat}/${data.lon}`;
-      listWidget.url = purpleMapUrl;
+      const errorWidgetText = listWidget.addText(`${error}`);
+      errorWidgetText.textColor = Color.red();
+      errorWidgetText.textOpacity = 30;
+      errorWidgetText.font = Font.regularSystemFont(10);
     }
-  } catch (error) {
-    console.log(`Could not render widget: ${error}`);
-
-    const errorWidgetText = listWidget.addText(`${error}`);
-    errorWidgetText.textColor = Color.red();
-    errorWidgetText.textOpacity = 30;
-    errorWidgetText.font = Font.regularSystemFont(10);
   }
 
   if (config.runsInApp) {
