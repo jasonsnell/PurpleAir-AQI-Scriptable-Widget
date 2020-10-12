@@ -224,7 +224,7 @@ async function getGeoData(lat, lon) {
 
   return {
     neighborhood: geo[0].subLocality,
-    city: geo[0].subAdministrativeArea,
+    city: geo[0].locality,
     state: geo[0].administrativeArea,
   };
 }
