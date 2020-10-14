@@ -192,7 +192,10 @@ async function getSensorData(sensorId) {
   const json = await req.loadJSON();
 
   try {
-    return {
+      let errorTest = json.results[0].Stats;
+      cacheData("sensordata.json", json);
+      console.log(`Sensor data looks good, cached.`);
+      return {
       val: json.results[0].Stats,
       adj1: json.results[0].pm2_5_cf_1,
       adj2: json.results[1].pm2_5_cf_1,
@@ -203,8 +206,18 @@ async function getSensorData(sensorId) {
       lon: json.results[0].Lon,
     };
   } catch (error) {
-    console.log(`Could not parse JSON: ${error}`);
-    throw 666;
+    console.log(`Could not parse JSON: ${error}, using cache`);
+    const cachedJson = getCachedData(`sensordata.json`)
+      return {
+      val: cachedJson.results[0].Stats,
+      adj1: cachedJson.results[0].pm2_5_cf_1,
+      adj2: cachedJson.results[1].pm2_5_cf_1,
+      ts: cachedJson.results[0].LastSeen,
+      hum: cachedJson.results[0].humidity,
+      loc: cachedJson.results[0].Label,
+      lat: cachedJson.results[0].Lat,
+      lon: cachedJson.results[0].Lon,
+    };
   }
 }
 
