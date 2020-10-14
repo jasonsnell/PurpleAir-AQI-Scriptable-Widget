@@ -320,15 +320,21 @@ const LEVEL_ATTRIBUTES = [
  * Get the EPA adjusted PPM
  *
  * @param {SensorData} sensorData
- * @returns {number} EPA draft adjustment for wood smoke and PurpleAir from https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=349513&Lab=CEMM&simplesearch=0&showcriteria=2&sortby=pubDate&timstype=&datebeginpublishedpresented=08/25/2018
+ * @returns {number} EPA adjustment for wood smoke and PurpleAir from slide 8 of https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=349513&Lab=CEMM&simplesearch=0&showcriteria=2&sortby=pubDate&timstype=&datebeginpublishedpresented=08/25/2018
  */
 function computePM(sensorData) {
   const adj1 = Number.parseInt(sensorData.adj1, 10);
   const adj2 = Number.parseInt(sensorData.adj2, 10);
   const hum = Number.parseInt(sensorData.hum, 10);
   const dataAverage = (adj1 + adj2) / 2;
-
+  console.log(`PM2.5 number is ${dataAverage}.`)
+  if (dataAverage < 250) { 
+  console.log(`Using EPA calculation.`)
   return 0.52 * dataAverage - 0.085 * hum + 5.71;
+} else {
+  console.log(`Using AQANDU calculation.`)
+  return .0778 * dataAverage + 2.65 
+}
 }
 
 /**
@@ -429,7 +435,8 @@ async function run() {
   listWidget.setPadding(10, 15, 10, 10);
 
   try {
-    const sensorId = await getSensorId();
+     const sensorId = await getSensorId();
+
     if (!sensorId) {
       throw "Please specify a location for this widget.";
     }
@@ -454,7 +461,10 @@ async function run() {
     const sensorLocation = await getLocation(data)
     console.log({ sensorLocation });
 
-    const isDarkMode = Device.isUsingDarkAppearance();
+
+//    temporarily disabling Dark Mode support
+//    const isDarkMode = Device.isUsingDarkAppearance();
+    const isDarkMode = false;
 
     const startColor = new Color(
       isDarkMode ? level.darkStartColor : level.startColor
