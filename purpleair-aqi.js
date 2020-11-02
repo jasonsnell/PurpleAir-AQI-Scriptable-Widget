@@ -112,7 +112,7 @@ async function getSensorId() {
     /** @type {LatLon} */
     const { latitude, longitude } = await Location.current();
 
-    const BOUND_OFFSET = 0.05;
+    const BOUND_OFFSET = 0.2;
 
     const nwLat = latitude + BOUND_OFFSET;
     const seLat = latitude - BOUND_OFFSET;
@@ -120,27 +120,28 @@ async function getSensorId() {
     const seLng = longitude + BOUND_OFFSET;
 
     const req = new Request(
-      `${API_URL}/data.json?opt=1/mAQI/a10/cC5&fetch=true&nwlat=${nwLat}&selat=${seLat}&nwlng=${nwLng}&selng=${seLng}&fields=ID`
+      `${API_URL}/json?exclude=true&nwlat=${nwLat}&selat=${seLat}&nwlng=${nwLng}&selng=${seLng}`
     );
 
-    /** @type {{ code?: number; data?: Array<Array<number>>; fields?: Array<string>; }} */
+    /** @type {{ code?: number; results?: Array<Object<string, number|string>>; }} */
     const res = await req.loadJSON();
 
-    const { fields, data } = res;
+    const { results } = res;
 
-    const sensorIdIndex = fields.indexOf("ID");
-    const latIndex = fields.indexOf("Lat");
-    const lonIndex = fields.indexOf("Lon");
-    const typeIndex = fields.indexOf("Type");
-    const OUTDOOR = 0;
+    const sensorIdField = "ID";
+    const latField = "Lat";
+    const lonField = "Lon";
+    const locationField = "DEVICE_LOCATIONTYPE";
+    const ageField = "AGE";
+    const OUTDOOR = "outside";
 
     let closestSensor;
     let closestDistance = Infinity;
 
-    for (const location of data.filter((datum) => datum[typeIndex] === OUTDOOR)) {
+    for (const location of results.filter((datum) => datum[locationField] === OUTDOOR && datum[ageField] < 60 * 4)) {
       const distanceFromLocation = haversine(
         { latitude, longitude },
-        { latitude: location[latIndex], longitude: location[lonIndex] }
+        { latitude: location[latField], longitude: location[lonField] }
       );
       if (distanceFromLocation < closestDistance) {
         closestDistance = distanceFromLocation;
@@ -148,7 +149,7 @@ async function getSensorId() {
       }
     }
 
-    const id = closestSensor[sensorIdIndex];
+    const id = closestSensor[sensorIdField];
     cacheData("sensor.json", { id, updatedAt: Date.now() });
 
     return id;
