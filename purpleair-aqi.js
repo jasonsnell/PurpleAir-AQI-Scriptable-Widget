@@ -187,15 +187,26 @@ function haversine(start, end) {
  * @returns {Promise<SensorData>}
  */
 async function getSensorData(sensorId) {
-
+  const sensorCache = `sensor-${sensorId}-data.json`;
   const req = new Request(`${API_URL}/json?show=${sensorId}`);
-  const json = await req.loadJSON();
+  let json = await req.loadJSON();
 
   try {
-      let errorTest = json.results[0].Stats;
-      cacheData("sensordata.json", json);
-      console.log(`Sensor data looks good, cached.`);
-      return {
+    // Check that our results are what we expect
+    if (json && json.results && Array.isArray(json.results) && json.results.length > 1) {
+      console.log(`Sensor data looks good, will cache.`);
+      const sensorData = { json, updatedAt: Date.now() }
+      cacheData(sensorCache, sensorData);
+    } else {
+      const { json: cachedJson, updatedAt } = getCachedData(sensorCache);
+      if (Date.now() - updatedAt > 2 * 60 * 60 * 1000) {
+        // Bail if our data is > 2 hours old
+        throw `Our cache is too old: ${updatedAt }`;
+      }
+      console.log(`Using cached sensor data: ${updatedAt}`);
+      json = cachedJson;
+    }
+    return {
       val: json.results[0].Stats,
       adj1: json.results[0].pm2_5_cf_1,
       adj2: json.results[1].pm2_5_cf_1,
@@ -205,19 +216,9 @@ async function getSensorData(sensorId) {
       lat: json.results[0].Lat,
       lon: json.results[0].Lon,
     };
-  } catch (error) {
-    console.log(`Could not parse JSON: ${error}, using cache`);
-    const cachedJson = getCachedData(`sensordata.json`)
-      return {
-      val: cachedJson.results[0].Stats,
-      adj1: cachedJson.results[0].pm2_5_cf_1,
-      adj2: cachedJson.results[1].pm2_5_cf_1,
-      ts: cachedJson.results[0].LastSeen,
-      hum: cachedJson.results[0].humidity,
-      loc: cachedJson.results[0].Label,
-      lat: cachedJson.results[0].Lat,
-      lon: cachedJson.results[0].Lon,
-    };
+  } catch(error) {
+    console.log(`Could not parse JSON: ${error}`);
+    throw 666;
   }
 }
 
@@ -341,12 +342,12 @@ function computePM(sensorData) {
   const hum = Number.parseInt(sensorData.hum, 10);
   const dataAverage = (adj1 + adj2) / 2;
   console.log(`PM2.5 number is ${dataAverage}.`)
-  if (dataAverage < 250) { 
+  if (dataAverage < 250) {
   console.log(`Using EPA calculation.`)
   return 0.52 * dataAverage - 0.085 * hum + 5.71;
 } else {
   console.log(`Using AQANDU calculation.`)
-  return .0778 * dataAverage + 2.65 
+  return .0778 * dataAverage + 2.65
 }
 }
 
