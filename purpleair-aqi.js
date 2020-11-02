@@ -216,7 +216,7 @@ async function getSensorData(sensorId) {
       lat: json.results[0].Lat,
       lon: json.results[0].Lon,
     };
-  } catch(error) {
+  } catch (error) {
     console.log(`Could not parse JSON: ${error}`);
     throw 666;
   }
