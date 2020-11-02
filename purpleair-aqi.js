@@ -343,12 +343,12 @@ function computePM(sensorData) {
   const dataAverage = (adj1 + adj2) / 2;
   console.log(`PM2.5 number is ${dataAverage}.`)
   if (dataAverage < 250) {
-  console.log(`Using EPA calculation.`)
-  return 0.52 * dataAverage - 0.085 * hum + 5.71;
-} else {
-  console.log(`Using AQANDU calculation.`)
-  return .0778 * dataAverage + 2.65
-}
+    console.log(`Using EPA calculation.`)
+    return 0.52 * dataAverage - 0.085 * hum + 5.71;
+  } else {
+    console.log(`Using AQANDU calculation.`)
+    return .0778 * dataAverage + 2.65
+  }
 }
 
 /**
