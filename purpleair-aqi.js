@@ -188,11 +188,25 @@ function haversine(start, end) {
  * @returns {Promise<SensorData>}
  */
 async function getSensorData(sensorId) {
-
+  const sensorCache = `sensor-${sensorId}-data.json`;
   const req = new Request(`${API_URL}/json?show=${sensorId}`);
-  const json = await req.loadJSON();
+  let json = await req.loadJSON();
 
   try {
+    // Check that our results are what we expect
+    if (json && json.results && Array.isArray(json.results) && json.results.length > 1) {
+      console.log(`Sensor data looks good, will cache.`);
+      const sensorData = { json, updatedAt: Date.now() }
+      cacheData(sensorCache, sensorData);
+    } else {
+      const { json: cachedJson, updatedAt } = getCachedData(sensorCache);
+      if (Date.now() - updatedAt > 2 * 60 * 60 * 1000) {
+        // Bail if our data is > 2 hours old
+        throw `Our cache is too old: ${updatedAt }`;
+      }
+      console.log(`Using cached sensor data: ${updatedAt}`);
+      json = cachedJson;
+    }
     return {
       val: json.results[0].Stats,
       adj1: json.results[0].pm2_5_cf_1,
