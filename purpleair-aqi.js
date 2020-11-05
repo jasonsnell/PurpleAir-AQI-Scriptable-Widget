@@ -480,23 +480,13 @@ async function run() {
     const sensorLocation = await getLocation(data)
     console.log({ sensorLocation });
 
-
-//    temporarily disabling Dark Mode support
-//    const isDarkMode = Device.isUsingDarkAppearance();
-    const isDarkMode = false;
-
-    const startColor = new Color(
-      isDarkMode ? level.darkStartColor : level.startColor
-    );
-    const endColor = new Color(
-      isDarkMode ? level.darkEndColor : level.endColor
-    );
-    const textColor = new Color(
-      isDarkMode ? level.darkTextColor : level.textColor
-    );
+    const startColor = Color.dynamic(new Color(level.startColor), new Color(level.darkStartColor));
+          
+    const endColor = Color.dynamic(new Color(level.endColor), new Color(level.darkEndColor));
+    
+    const textColor = Color.dynamic(new Color(level.textColor), new Color(level.darkTextColor));
+    
     const gradient = new LinearGradient();
-
-    console.log(`${isDarkMode ? "dark" : "light"} mode`);
 
     gradient.colors = [startColor, endColor];
     gradient.locations = [0.0, 1];
