@@ -34,7 +34,7 @@ const SENSOR_ID = args.widgetParameter;
  * @typedef {object} SensorData
  * @property {string} val
  * @property {string} adj1
- * @property {string} adj2
+ * @property {string} [adj2]
  * @property {number} ts
  * @property {string} hum
  * @property {string} loc
@@ -345,7 +345,7 @@ function computePM(sensorData) {
   const adj1 = Number.parseInt(sensorData.adj1, 10);
   const adj2 = Number.parseInt(sensorData.adj2, 10);
   const hum = Number.parseInt(sensorData.hum, 10);
-  const dataAverage = (adj1 + adj2) / 2;
+  const dataAverage = isNaN(adj2) ? adj1 : (adj1 + adj2) / 2;
   console.log(`PM2.5 number is ${dataAverage}.`)
   if (dataAverage < 250) {
     console.log(`Using EPA calculation.`)
