@@ -416,7 +416,7 @@ function calculateLevel(aqi) {
     darkEndColor = "007700",
     darkTextColor = "000000",
     threshold = -Infinity,
-    sfSymbol = "",
+    sfSymbol = "aqi.low",
   } = LEVEL_ATTRIBUTES.find(({ threshold }) => level > threshold) || {};
 
   return {
@@ -461,7 +461,7 @@ function createSymbol(symbolName, fontSize) {
 
 async function run() {
   const listWidget = new ListWidget();
-  listWidget.setPadding(10, 15, 10, 5);
+  listWidget.useDefaultPadding();
 
   try {
      const sensorId = await getSensorId();
@@ -494,6 +494,8 @@ async function run() {
     const endColor = Color.dynamic(new Color(level.endColor), new Color(level.darkEndColor));
     const textColor = Color.dynamic(new Color(level.textColor), new Color(level.darkTextColor));
 
+    // BACKGROUND
+
     const gradient = new LinearGradient();
     gradient.colors = [startColor, endColor];
     gradient.locations = [0.0, 1];
@@ -521,31 +523,34 @@ async function run() {
     const wordLevel = textStack.addText(level.label);
     wordLevel.textColor = textColor;
     wordLevel.font = Font.semiboldSystemFont(25);
-    wordLevel.minimumScaleFactor = 0.7;
+    wordLevel.minimumScaleFactor = 0.3;
 
-    headStack.addSpacer(15);
+    headStack.addSpacer();
 
-    const statusSymbol = createSymbol(level.sfSymbol, 15);
+    const statusSymbol = createSymbol(level.sfSymbol, 20);
     const statusImg = headStack.addImage(statusSymbol.image);
-    statusImg.resizable = true;
-    statusImg.imageSize = new Size(28, 28);
-    statusImg.minimumScaleFactor = 0.4;
+    statusImg.resizable = false;
+    statusImg.tintColor = textColor;
 
     listWidget.addSpacer(0);
 
     // SCORE
 
     const scoreStack = listWidget.addStack();
+    scoreStack.centerAlignContent()
+
     const content = scoreStack.addText(aqiText);
     content.textColor = textColor;
     content.font = Font.semiboldSystemFont(30);
+
+    scoreStack.addSpacer(4);
+
     const trendSymbol = createSymbol(aqiTrend, 15);
     const trendImg = scoreStack.addImage(trendSymbol.image);
     trendImg.resizable = false;
     trendImg.tintColor = textColor;
-    trendImg.imageSize = new Size(28, 30);
 
-    listWidget.addSpacer(10);
+    listWidget.addSpacer();
 
     // LOCATION
 
@@ -564,8 +569,10 @@ async function run() {
     });
     const widgetText = listWidget.addText(`Updated ${updatedAt}`);
     widgetText.textColor = textColor;
-    widgetText.font = Font.regularSystemFont(9);
-    widgetText.minimumScaleFactor = 0.6;
+    widgetText.font = Font.regularSystemFont(8);
+    widgetText.minimumScaleFactor = 0.5;
+
+    // TAP HANDLER
 
     const purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5&select=${sensorId}#14/${data.lat}/${data.lon}`;
     listWidget.url = purpleMapUrl;
