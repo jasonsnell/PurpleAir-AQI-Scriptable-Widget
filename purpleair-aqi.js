@@ -443,7 +443,7 @@ function getAQITrend({ v1: partLive, v3: partTime }) {
   const partDelta = partTime - partLive;
   if (partDelta > 5) return "arrow.down";
   if (partDelta < -5) return "arrow.up";
-  return "arrow.left.and.right";
+  return "";
 }
 
 /**
@@ -543,12 +543,14 @@ async function run() {
     content.textColor = textColor;
     content.font = Font.semiboldSystemFont(30);
 
-    scoreStack.addSpacer(4);
+    if (aqiTrend.length > 0) {
+      scoreStack.addSpacer(4);
 
-    const trendSymbol = createSymbol(aqiTrend, 15);
-    const trendImg = scoreStack.addImage(trendSymbol.image);
-    trendImg.resizable = false;
-    trendImg.tintColor = textColor;
+      const trendSymbol = createSymbol(aqiTrend, 15);
+      const trendImg = scoreStack.addImage(trendSymbol.image);
+      trendImg.resizable = false;
+      trendImg.tintColor = textColor;
+    }
 
     listWidget.addSpacer();
 
