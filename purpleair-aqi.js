@@ -28,6 +28,7 @@ const SENSOR_ID = args.widgetParameter;
  * @property {string} darkStartColor
  * @property {string} darkEndColor
  * @property {string} darkTextColor
+ * @property {string} sfSymbol
  */
 
 /**
@@ -281,6 +282,7 @@ const LEVEL_ATTRIBUTES = [
     darkStartColor: "333333",
     darkEndColor: "000000",
     darkTextColor: "ce4ec5",
+    sfSymbol: "aqi.high",
   },
   {
     threshold: 200,
@@ -291,6 +293,7 @@ const LEVEL_ATTRIBUTES = [
     darkStartColor: "333333",
     darkEndColor: "000000",
     darkTextColor: "f33939",
+    sfSymbol: "aqi.high",
   },
   {
     threshold: 150,
@@ -301,6 +304,7 @@ const LEVEL_ATTRIBUTES = [
     darkStartColor: "333333",
     darkEndColor: "000000",
     darkTextColor: "f16745",
+    sfSymbol: "aqi.high",
   },
   {
     threshold: 100,
@@ -311,6 +315,7 @@ const LEVEL_ATTRIBUTES = [
     darkStartColor: "333333",
     darkEndColor: "000000",
     darkTextColor: "f7a021",
+    sfSymbol: "aqi.medium",
   },
   {
     threshold: 50,
@@ -321,6 +326,7 @@ const LEVEL_ATTRIBUTES = [
     darkStartColor: "333333",
     darkEndColor: "000000",
     darkTextColor: "f2e269",
+    sfSymbol: "aqi.low",
   },
   {
     threshold: -20,
@@ -331,6 +337,7 @@ const LEVEL_ATTRIBUTES = [
     darkStartColor: "333333",
     darkEndColor: "000000",
     darkTextColor: "6de46d",
+    sfSymbol: "aqi.low",
   },
 ];
 
@@ -409,6 +416,7 @@ function calculateLevel(aqi) {
     darkEndColor = "007700",
     darkTextColor = "000000",
     threshold = -Infinity,
+    sfSymbol = "",
   } = LEVEL_ATTRIBUTES.find(({ threshold }) => level > threshold) || {};
 
   return {
@@ -421,6 +429,7 @@ function calculateLevel(aqi) {
     darkTextColor,
     threshold,
     level,
+    sfSymbol,
   };
 }
 
@@ -441,17 +450,18 @@ function getAQITrend({ v1: partLive, v3: partTime }) {
  * Constructs an SFSymbol from the given symbolName
  *
  * @param {string} symbolName
+ * @param {number} fontSize
  * @returns {object} SFSymbol
  */
-function createSymbol(symbolName) {
+function createSymbol(symbolName, fontSize) {
   const symbol = SFSymbol.named(symbolName);
-  symbol.applyFont(Font.systemFont(15));
+  symbol.applyFont(Font.systemFont(fontSize));
   return symbol;
 }
 
 async function run() {
   const listWidget = new ListWidget();
-  listWidget.setPadding(10, 15, 10, 10);
+  listWidget.setPadding(10, 15, 10, 5);
 
   try {
      const sensorId = await getSensorId();
@@ -481,36 +491,55 @@ async function run() {
     console.log({ sensorLocation });
 
     const startColor = Color.dynamic(new Color(level.startColor), new Color(level.darkStartColor));
-          
     const endColor = Color.dynamic(new Color(level.endColor), new Color(level.darkEndColor));
-    
     const textColor = Color.dynamic(new Color(level.textColor), new Color(level.darkTextColor));
-    
-    const gradient = new LinearGradient();
 
+    const gradient = new LinearGradient();
     gradient.colors = [startColor, endColor];
     gradient.locations = [0.0, 1];
     console.log({ gradient });
 
     listWidget.backgroundGradient = gradient;
 
-    const header = listWidget.addText('Air Quality'.toUpperCase());
+    // HEADER
+
+    const headStack = listWidget.addStack();
+    headStack.layoutHorizontally();
+    headStack.topAlignContent();
+    headStack.setPadding (0,0,0,0);
+
+    const textStack = headStack.addStack();
+    textStack.layoutVertically();
+    textStack.topAlignContent();
+    textStack.setPadding (0,0,0,0);
+
+    const header = textStack.addText('Air Quality'.toUpperCase());
     header.textColor = textColor;
     header.font = Font.regularSystemFont(11);
-    header.minimumScaleFactor = 0.50;
+    header.minimumScaleFactor = 1;
 
-    const wordLevel = listWidget.addText(level.label);
+    const wordLevel = textStack.addText(level.label);
     wordLevel.textColor = textColor;
     wordLevel.font = Font.semiboldSystemFont(25);
-    wordLevel.minimumScaleFactor = 0.3;
+    wordLevel.minimumScaleFactor = 0.7;
 
-    listWidget.addSpacer(5);
+    headStack.addSpacer(15);
+
+    const statusSymbol = createSymbol(level.sfSymbol, 15);
+    const statusImg = headStack.addImage(statusSymbol.image);
+    statusImg.resizable = true;
+    statusImg.imageSize = new Size(28, 28);
+    statusImg.minimumScaleFactor = 0.4;
+
+    listWidget.addSpacer(0);
+
+    // SCORE
 
     const scoreStack = listWidget.addStack();
     const content = scoreStack.addText(aqiText);
     content.textColor = textColor;
     content.font = Font.semiboldSystemFont(30);
-    const trendSymbol = createSymbol(aqiTrend);
+    const trendSymbol = createSymbol(aqiTrend, 15);
     const trendImg = scoreStack.addImage(trendSymbol.image);
     trendImg.resizable = false;
     trendImg.tintColor = textColor;
@@ -518,12 +547,16 @@ async function run() {
 
     listWidget.addSpacer(10);
 
+    // LOCATION
+
     const locationText = listWidget.addText(sensorLocation);
     locationText.textColor = textColor;
     locationText.font = Font.regularSystemFont(14);
     locationText.minimumScaleFactor = 0.5;
 
     listWidget.addSpacer(2);
+
+    // UPDATED AT
 
     const updatedAt = new Date(data.ts * 1000).toLocaleTimeString([], {
       hour: "numeric",
