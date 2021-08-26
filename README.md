@@ -1,6 +1,8 @@
 # PurpleAir-AQI-Scriptable-Widget
 
-<img src="https://sixcolors.com/wp-content/uploads/2020/10/widget-latest.jpeg" width="600" />
+<img src="https://sixcolors.com/wp-content/uploads/2021/08/new-aqi.jpg" width="600" />
+
+
 
 Project operated by Jason Snell <jsnell@sixcolors.com> with enormous contributions from Matt Silverlock, Rob Silverii, Adam Lickel, Alexander Ogilvie, Brian Donovan, Jon Sadka, and anonymous others!
 
@@ -23,8 +25,6 @@ If you don't specify the sensor ID of a nearby PurpleAir sensor, _the script wil
 This widget uses an EPA calculation designed for low-cost sensors like PurpleAir in areas where wood smoke is an issue, such as during wildfires. You can [read about the backstory here](https://thebolditalic.com/understanding-purpleair-vs-airnow-gov-measurements-of-wood-smoke-pollution-562923a55226) and [see the EPA document here](https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=349513&Lab=CEMM&simplesearch=0&showcriteria=2&sortby=pubDate&timstype=&datebeginpublishedpresented=08/25/2018).
 
 PurpleAir refers to this calculation as **US EPA**, which you can choose from the Conversion popup on the PurpleAir web map.
-
-In some extreme smoke situations the widget falls back to the **AQANDU** calculation method.
 
 ## What matters more, the numbers or the words/colors?
 
