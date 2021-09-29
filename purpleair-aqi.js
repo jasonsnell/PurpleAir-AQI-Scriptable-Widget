@@ -6,6 +6,15 @@
  * Based on code by Matt Silverlock.
  */
 
+
+/**
+ * By default this widget does not use a PurpleAir API key.
+ * If you want to access a private station, you'll need to enter your API key below,
+ * in the constant named API_key.
+ */
+
+const API_key = "";
+
 const API_URL = "https://www.purpleair.com";
 
 /**
@@ -190,7 +199,13 @@ function haversine(start, end) {
  */
 async function getSensorData(sensorId) {
   const sensorCache = `sensor-${sensorId}-data.json`;
-  const req = new Request(`${API_URL}/json?show=${sensorId}`);
+  if (API_key) {
+     var req = new Request(`${API_URL}/json?show=${sensorId}&key=${API_key}`);
+     console.log ('API key');
+  } else {
+     var req = new Request(`${API_URL}/json?show=${sensorId}`);   
+     console.log ('no API key');
+  }
   let json = await req.loadJSON();
 
   try {
@@ -342,6 +357,8 @@ const LEVEL_ATTRIBUTES = [
 ];
 
 
+
+
 /**
  * Get the EPA adjusted PPM
  *
@@ -443,6 +460,7 @@ function getAQITrend({ v1: partLive, v3: partTime }) {
   const partDelta = partTime - partLive;
   if (partDelta > 5) return "arrow.down";
   if (partDelta < -5) return "arrow.up";
+  console.log({ partDelta });
   return "";
 }
 
@@ -477,7 +495,6 @@ async function run() {
     console.log({ stats });
 
     const aqiTrend = getAQITrend(stats);
-    console.log({ aqiTrend });
 
     const epaPM = computePM(data);
     console.log({ epaPM });
