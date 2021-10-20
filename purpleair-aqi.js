@@ -593,7 +593,13 @@ async function run() {
 
     // TAP HANDLER
 
-    const purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5&select=${sensorId}#14/${data.lat}/${data.lon}`;
+    if (API_key) {
+       var purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5&select=${sensorId}&key=${API_key}#14/${data.lat}/${data.lon}`;
+       console.log ('API key');
+    } else {
+       var purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5&select=${sensorId}#14/${data.lat}/${data.lon}`;
+       console.log ('no API key');
+    }
     listWidget.url = purpleMapUrl;
   } catch (error) {
     if (error === 666) {
