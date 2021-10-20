@@ -20,6 +20,8 @@ You can run the script from within the app, or add a new Small widget on your ho
 
 If you don't specify the sensor ID of a nearby PurpleAir sensor, _the script will attempt to display information from the active sensor that is closest to you_. (To force the widget to use a specific PurpleAir sensor ID, tap and hold on the widget, choose Edit Widget, and enter the sensor ID in the Parameter section. To find a sensor ID, go to the PurpleAir map and tap or click on a station near you. The URL in your browser should change to the new selection. A four- or five-digit number will appear just after "select=" and that's the number to enter in to the Parameter field.)
 
+If your weather station is private, you can still use this widget, but you'll need to get your API key (found after the "key=" portion of the URL when you browse PurpleAir.com while logged in) and enter it in to the parameter at the top of the script.
+
 ## How does this widget calculate AQI?
 
 This widget uses an EPA calculation designed for low-cost sensors like PurpleAir in areas where wood smoke is an issue, such as during wildfires. You can [read about the backstory here](https://thebolditalic.com/understanding-purpleair-vs-airnow-gov-measurements-of-wood-smoke-pollution-562923a55226) and [see the EPA document here](https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=349513&Lab=CEMM&simplesearch=0&showcriteria=2&sortby=pubDate&timstype=&datebeginpublishedpresented=08/25/2018).
