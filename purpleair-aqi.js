@@ -482,7 +482,7 @@ async function run() {
   listWidget.useDefaultPadding();
 
   try {
-    if (!API_KEY) {
+    if (!API_KEY || API_KEY === "your-api-key-goes-here") {
       throw `You need a PurpleAir API Key for this widget.`;
     }
 
