@@ -206,10 +206,6 @@ function haversine(start, end) {
  */
 
 async function getSensorData(sensorId) {
-  if (!API_KEY) {
-    throw `Missing PurpleAir API Key`;
-  }
-
   const sensorCache = `sensor-${sensorId}-data.json`;
   var req = new Request(`${API_URL}/v1/sensors/${sensorId}`);
   req.headers = {"X-API-Key": API_KEY} ;
@@ -492,6 +488,10 @@ async function run() {
   listWidget.useDefaultPadding();
 
   try {
+    if (!API_KEY) {
+      throw `You need a PurpleAir API Key for this widget.`;
+    }
+
     const sensorId = await getSensorId();
 
     if (!sensorId) {
