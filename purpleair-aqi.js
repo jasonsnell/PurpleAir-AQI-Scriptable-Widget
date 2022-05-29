@@ -17,7 +17,7 @@ const API_URL = "https://api.purpleair.com/";
  * and enter your READ KEY in the API key variable below.
  */
 
-const API_key = "api-key-goes-here";
+const API_key = "4AFEA8D6-5078-11EB-9893-42010A8001E8";
 
 /**
  * Find a nearby PurpleAir sensor ID via https://fire.airnow.gov/
@@ -27,6 +27,9 @@ const API_key = "api-key-goes-here";
  */
 
 const SENSOR_ID = args.widgetParameter;
+
+/* const fallbackSensorId = "62299";
+*/
 
 /**
  * Widget attributes: AQI level threshold, text label, gradient start and end colors, text color
@@ -241,6 +244,53 @@ async function getSensorData(sensorId) {
   } catch (error) {
     console.log(`Could not parse JSON: ${error}`);
     throw 666;
+  }
+}
+
+/**
+ * Fetch reverse geocode
+ *
+ * @param {string} lat
+ * @param {string} lon
+ * @returns {Promise<GeospatialData>}
+ */
+async function getGeoData(lat, lon) {
+  const latitude = Number.parseFloat(lat);
+  const longitude = Number.parseFloat(lon);
+
+  const geo = await Location.reverseGeocode(latitude, longitude);
+  console.log({ geo: geo });
+
+  return {
+    neighborhood: geo[0].subLocality,
+    city: geo[0].locality,
+    state: geo[0].administrativeArea,
+  };
+}
+
+/**
+ * Fetch a renderable location
+ *
+ * @param {SensorData} data
+ * @returns {Promise<String>}
+ */
+async function getLocation(data) {
+  try {
+    if (args.widgetParameter) {
+      return data.loc;
+    }
+
+    const geoData = await getGeoData(data.lat, data.lon);
+    console.log({ geoData });
+
+    if (geoData.neighborhood && geoData.city) {
+        return `${geoData.neighborhood}, ${geoData.city}`;
+    } else {
+        return geoData.city || data.loc;
+    }
+  } catch (error) {
+    console.log(`Could not cleanup location: ${error}`);
+    return data.loc;
   }
 }
 
@@ -462,7 +512,7 @@ try{
     const aqiText = aqi.toString();
     console.log({ aqi });
 
-    const sensorLocation = data.loc;
+    const sensorLocation = await getLocation(data)
     console.log({ sensorLocation });
 
     const startColor = Color.dynamic(new Color(level.startColor), new Color(level.darkStartColor));
