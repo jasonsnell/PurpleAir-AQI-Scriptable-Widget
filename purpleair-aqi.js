@@ -462,10 +462,12 @@ function calculateLevel(aqi) {
 /**
  * Get the AQI trend
  *
- * @param {{ v1: number; v3: number; }} stats
+ * @param {{ pm2.5: number; pm2.5_10minute: number; }} stats
  * @returns {string}
  */
-function getAQITrend({ 'pm2.5': partLive, 'pm2.5_10minute': partTime }) {
+function getAQITrend(stats) {
+  const partLive = stats["pm2.5"];
+  const partTime = stats["pm2.5_10minute"]
   const partDelta = partTime - partLive;
   if (partDelta > 5) return "arrow.down";
   if (partDelta < -5) return "arrow.up";
