@@ -1,3 +1,6 @@
+// Variables used by Scriptable.
+// These must be at the very top of the file. Do not edit.
+// icon-color: deep-green; icon-glyph: leaf;
 "use strict";
 
 /**
@@ -22,8 +25,6 @@ const API_key = "api-key-goes-here";
  * https://www.purpleair.com/json has all sensors by location & ID.
  * @type {number}
  */
-
-const fallbackSensorId = "70251";
 
 const SENSOR_ID = args.widgetParameter;
 
@@ -99,13 +100,103 @@ function cacheData(fileName, data) {
   fileManager.writeString(cacheFile, contents);
 }
 
+
+
+/**
+ * Get the closest PurpleAir sensorId to the given location
+ *
+ * @returns {Promise<number>}
+ */
 async function getSensorId() {
-  if (SENSOR_ID) {
-  return SENSOR_ID;
-} else {
-  return fallbackSensorId;
+  if (SENSOR_ID) return SENSOR_ID;
+
+  let fallbackSensorId = undefined;
+
+  try {
+    const cachedSensor = getCachedData("sensor.json");
+    if (cachedSensor) {
+      console.log({ cachedSensor });
+
+      const { id, updatedAt } = cachedSensor;
+      fallbackSensorId = id;
+      // If we've fetched the location within the last 15 minutes, just return it
+      if (Date.now() - updatedAt < 15 * 60 * 1000) {
+        return id;
+      }
+    }
+
+    /** @type {LatLon} */
+    const { latitude, longitude } = await Location.current();
+
+    const BOUND_OFFSET = 0.2;
+
+    const nwLat = latitude + BOUND_OFFSET;
+    const seLat = latitude - BOUND_OFFSET;
+    const nwLng = longitude - BOUND_OFFSET;
+    const seLng = longitude + BOUND_OFFSET;
+    const req = new Request(
+      `${API_URL}/v1/sensors?fields=name,latitude,longitude,location_type&max_age=3600&location_type=0&nwlat=${nwLat}&selat=${seLat}&nwlng=${nwLng}&selng=${seLng}`
+    );
+
+    /** @type {{ code?: number; results?: Array<Object<string, number|string>>; }} */
+    const res = await req.loadJSON();
+
+    const { results } = res;
+
+    const sensorIdField = "ID";
+    const latField = "Lat";
+    const lonField = "Lon";
+    const locationField = "DEVICE_LOCATIONTYPE";
+    const ageField = "AGE";
+    const OUTDOOR = "outside";
+
+    let closestSensor;
+    let closestDistance = Infinity;
+
+    for (const location of results.filter((datum) => datum[locationField] === OUTDOOR && datum[ageField] < 60 * 4)) {
+      const distanceFromLocation = haversine(
+        { latitude, longitude },
+        { latitude: location[latField], longitude: location[lonField] }
+      );
+      if (distanceFromLocation < closestDistance) {
+        closestDistance = distanceFromLocation;
+        closestSensor = location;
+      }
+    }
+
+    const id = closestSensor[sensorIdField];
+    cacheData("sensor.json", { id, updatedAt: Date.now() });
+
+    return id;
+  } catch (error) {
+    console.log(`Could not fetch location: ${error}`);
+    return fallbackSensorId;
+  }
 }
+
+/**
+ * Returns the haversine distance between start and end.
+ *
+ * @param {LatLon} start
+ * @param {LatLon} end
+ * @returns {number}
+ */
+function haversine(start, end) {
+  const toRadians = (n) => (n * Math.PI) / 180;
+
+  const deltaLat = toRadians(end.latitude - start.latitude);
+  const deltaLon = toRadians(end.longitude - start.longitude);
+  const startLat = toRadians(start.latitude);
+  const endLat = toRadians(end.latitude);
+
+  const angle =
+    Math.sin(deltaLat / 2) ** 2 +
+    Math.sin(deltaLon / 2) ** 2 * Math.cos(startLat) * Math.cos(endLat);
+
+  return 2 * Math.atan2(Math.sqrt(angle), Math.sqrt(1 - angle));
 }
+
+
 
 /**
  * Fetch content from PurpleAir
@@ -117,11 +208,11 @@ async function getSensorId() {
 async function getSensorData(sensorId) {
 
   const sensorCache = `sensor-${sensorId}-data.json`;
-     var req = new Request(`https://api.purpleair.com/v1/sensors/${sensorId}`);
+     var req = new Request(`${API_URL}/v1/sensors/${sensorId}`);
      req.headers = {"X-API-Key": API_key} ;
 
   let json = await req.loadJSON();
-console.log (json.sensor.stats)
+
   try {
     // Check that our results are what we expect
     if (json && json.sensor) {
@@ -325,11 +416,9 @@ function calculateLevel(aqi) {
  * @returns {string}
  */
 function getAQITrend({ 'pm2.5': partLive, 'pm2.5_10minute': partTime }) {
-  console.log(partLive);
     const partDelta = partTime - partLive;
   if (partDelta > 5) return "arrow.down";
   if (partDelta < -5) return "arrow.up";
-  console.log({ partDelta });
   return "";
 }
 
@@ -361,7 +450,7 @@ try{
     const data = await getSensorData(sensorId);
 
     const stats = data.val.stats;
-    console.log({ data });
+    console.log({ stats });
 
     const aqiTrend = getAQITrend(stats);
 
