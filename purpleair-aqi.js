@@ -17,7 +17,7 @@ const API_URL = "https://api.purpleair.com/";
  * and enter your READ KEY in the API key variable below.
  */
 
-const API_key = "4AFEA8D6-5078-11EB-9893-42010A8001E8";
+const API_key = "your-api-key-goes-here";
 
 /**
  * Find a nearby PurpleAir sensor ID via https://fire.airnow.gov/
@@ -27,9 +27,6 @@ const API_key = "4AFEA8D6-5078-11EB-9893-42010A8001E8";
  */
 
 const SENSOR_ID = args.widgetParameter;
-
-/* const fallbackSensorId = "62299";
-*/
 
 /**
  * Widget attributes: AQI level threshold, text label, gradient start and end colors, text color
