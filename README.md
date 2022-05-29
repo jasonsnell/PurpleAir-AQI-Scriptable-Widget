@@ -18,9 +18,7 @@ To use this widget, make a new script inside Scriptable and paste in the content
 
 You can run the script from within the app, or add a new Small widget on your home screen, set it to Scriptable, and choose the script by tapping and holding on the widget, choosing Edit Widget, and choosing the script by tapping on the Script field. 
 
-If you don't specify the sensor ID of a nearby PurpleAir sensor, _the script will attempt to display information from the active sensor that is closest to you_. (To force the widget to use a specific PurpleAir sensor ID, tap and hold on the widget, choose Edit Widget, and enter the sensor ID in the Parameter section. To find a sensor ID, go to the PurpleAir map and tap or click on a station near you. The URL in your browser should change to the new selection. A four- or five-digit number will appear just after "select=" and that's the number to enter in to the Parameter field.)
-
-If your weather station is private, you can still use this widget, but you'll need to get your API key (found after the "key=" portion of the URL when you browse PurpleAir.com while logged in) and enter it in to the parameter at the top of the script.
+PurpleAir **has changed its API**. This widget now requires a PurpleAir API key. If you don't have one, you'll need to request one from <https://www2.purpleair.com/pages/contact-us> and enter your READ KEY in the API key variable in the script.
 
 ## How does this widget calculate AQI?
 

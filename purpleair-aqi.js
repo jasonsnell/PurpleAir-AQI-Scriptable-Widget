@@ -1,3 +1,6 @@
+// Variables used by Scriptable.
+// These must be at the very top of the file. Do not edit.
+// icon-color: deep-green; icon-glyph: leaf;
 "use strict";
 
 /**
@@ -6,16 +9,15 @@
  * Based on code by Matt Silverlock.
  */
 
+const API_URL = "https://api.purpleair.com/";
 
 /**
- * By default this widget does not use a PurpleAir API key.
- * If you want to access a private station, you'll need to enter your API key below,
- * in the constant named API_key.
+ * This widget requires a PurpleAir API key. If you don't have one,
+ * you'll need to request one from <https://www2.purpleair.com/pages/contact-us>
+ * and enter your READ KEY in the API key variable below.
  */
 
-const API_key = "";
-
-const API_URL = "https://www.purpleair.com";
+const API_KEY = "your-api-key-goes-here";
 
 /**
  * Find a nearby PurpleAir sensor ID via https://fire.airnow.gov/
@@ -23,6 +25,7 @@ const API_URL = "https://www.purpleair.com";
  * https://www.purpleair.com/json has all sensors by location & ID.
  * @type {number}
  */
+
 const SENSOR_ID = args.widgetParameter;
 
 /**
@@ -57,6 +60,7 @@ const SENSOR_ID = args.widgetParameter;
  * @property {number} latitude
  * @property {number} longitude
  */
+
 
 /**
  * Get JSON from a local file
@@ -96,6 +100,8 @@ function cacheData(fileName, data) {
   fileManager.writeString(cacheFile, contents);
 }
 
+
+
 /**
  * Get the closest PurpleAir sensorId to the given location
  *
@@ -109,7 +115,7 @@ async function getSensorId() {
   try {
     const cachedSensor = getCachedData("sensor.json");
     if (cachedSensor) {
-      console.log({ cachedSensor });
+      console.log({ "Cached Sensor": cachedSensor });
 
       const { id, updatedAt } = cachedSensor;
       fallbackSensorId = id;
@@ -128,30 +134,21 @@ async function getSensorId() {
     const seLat = latitude - BOUND_OFFSET;
     const nwLng = longitude - BOUND_OFFSET;
     const seLng = longitude + BOUND_OFFSET;
-
-    const req = new Request(
-      `${API_URL}/json?exclude=true&nwlat=${nwLat}&selat=${seLat}&nwlng=${nwLng}&selng=${seLng}`
+    var req = new Request(
+      `${API_URL}/v1/sensors?fields=name,latitude,longitude&max_age=3600&location_type=0&nwlat=${nwLat}&selat=${seLat}&nwlng=${nwLng}&selng=${seLng}`
     );
+    req.headers = {"X-API-Key": API_KEY} ;
 
-    /** @type {{ code?: number; results?: Array<Object<string, number|string>>; }} */
     const res = await req.loadJSON();
-
-    const { results } = res;
-
-    const sensorIdField = "ID";
-    const latField = "Lat";
-    const lonField = "Lon";
-    const locationField = "DEVICE_LOCATIONTYPE";
-    const ageField = "AGE";
-    const OUTDOOR = "outside";
+    const { data } = res;
 
     let closestSensor;
     let closestDistance = Infinity;
 
-    for (const location of results.filter((datum) => datum[locationField] === OUTDOOR && datum[ageField] < 60 * 4)) {
+    for (const location of data) {
       const distanceFromLocation = haversine(
         { latitude, longitude },
-        { latitude: location[latField], longitude: location[lonField] }
+        { latitude: location[2], longitude: location[3] }
       );
       if (distanceFromLocation < closestDistance) {
         closestDistance = distanceFromLocation;
@@ -159,8 +156,10 @@ async function getSensorId() {
       }
     }
 
-    const id = closestSensor[sensorIdField];
-    cacheData("sensor.json", { id, updatedAt: Date.now() });
+    const [id, name, lat, long] = closestSensor;
+    const typedSensor = { id, name, latitude: lat, longitude: long, updatedAt: Date.now() };
+    console.log({ "Closest sensor": typedSensor });
+    cacheData("sensor.json", typedSensor);
 
     return id;
   } catch (error) {
@@ -191,26 +190,25 @@ function haversine(start, end) {
   return 2 * Math.atan2(Math.sqrt(angle), Math.sqrt(1 - angle));
 }
 
+
+
 /**
  * Fetch content from PurpleAir
  *
  * @param {number} sensorId
  * @returns {Promise<SensorData>}
  */
+
 async function getSensorData(sensorId) {
   const sensorCache = `sensor-${sensorId}-data.json`;
-  if (API_key) {
-     var req = new Request(`${API_URL}/json?show=${sensorId}&key=${API_key}`);
-     console.log ('API key');
-  } else {
-     var req = new Request(`${API_URL}/json?show=${sensorId}`);   
-     console.log ('no API key');
-  }
+  var req = new Request(`${API_URL}/v1/sensors/${sensorId}`);
+  req.headers = {"X-API-Key": API_KEY} ;
+
   let json = await req.loadJSON();
 
   try {
     // Check that our results are what we expect
-    if (json && json.results && Array.isArray(json.results) && json.results.length > 1) {
+    if (json && json.sensor) {
       console.log(`Sensor data looks good, will cache.`);
       const sensorData = { json, updatedAt: Date.now() }
       cacheData(sensorCache, sensorData);
@@ -218,20 +216,20 @@ async function getSensorData(sensorId) {
       const { json: cachedJson, updatedAt } = getCachedData(sensorCache);
       if (Date.now() - updatedAt > 2 * 60 * 60 * 1000) {
         // Bail if our data is > 2 hours old
-        throw `Our cache is too old: ${updatedAt }`;
+        throw `Our cache is too old: ${updatedAt}`;
       }
       console.log(`Using cached sensor data: ${updatedAt}`);
       json = cachedJson;
     }
     return {
-      val: json.results[0].Stats,
-      adj1: json.results[0].pm2_5_cf_1,
-      adj2: json.results[1].pm2_5_cf_1,
-      ts: json.results[0].LastSeen,
-      hum: json.results[0].humidity,
-      loc: json.results[0].Label,
-      lat: json.results[0].Lat,
-      lon: json.results[0].Lon,
+      val: json.sensor,
+      adj1: json.sensor.stats_a["pm2.5_10minute"],
+      adj2: json.sensor.stats_b["pm2.5_10minute"],
+      ts: json.sensor.last_seen,
+      hum: json.sensor.humidity,
+      loc: json.sensor.name,
+      lat: json.sensor.latitude,
+      lon: json.sensor.longitude,
     };
   } catch (error) {
     console.log(`Could not parse JSON: ${error}`);
@@ -285,6 +283,7 @@ async function getLocation(data) {
     return data.loc;
   }
 }
+
 
 /** @type {Array<LevelAttribute>} sorted by threshold desc. */
 const LEVEL_ATTRIBUTES = [
@@ -453,14 +452,15 @@ function calculateLevel(aqi) {
 /**
  * Get the AQI trend
  *
- * @param {{ v1: number; v3: number; }} stats
+ * @param {{ pm2.5: number; pm2.5_10minute: number; }} stats
  * @returns {string}
  */
-function getAQITrend({ v1: partLive, v3: partTime }) {
+function getAQITrend(stats) {
+  const partLive = stats["pm2.5"];
+  const partTime = stats["pm2.5_10minute"]
   const partDelta = partTime - partLive;
   if (partDelta > 5) return "arrow.down";
   if (partDelta < -5) return "arrow.up";
-  console.log({ partDelta });
   return "";
 }
 
@@ -482,7 +482,11 @@ async function run() {
   listWidget.useDefaultPadding();
 
   try {
-     const sensorId = await getSensorId();
+    if (!API_KEY || API_KEY === "your-api-key-goes-here") {
+      throw `You need a PurpleAir API Key for this widget.`;
+    }
+
+    const sensorId = await getSensorId();
 
     if (!sensorId) {
       throw "Please specify a location for this widget.";
@@ -491,7 +495,7 @@ async function run() {
 
     const data = await getSensorData(sensorId);
 
-    const stats = JSON.parse(data.val);
+    const stats = data.val.stats;
     console.log({ stats });
 
     const aqiTrend = getAQITrend(stats);
@@ -592,14 +596,7 @@ async function run() {
     widgetText.minimumScaleFactor = 0.5;
 
     // TAP HANDLER
-
-    if (API_key) {
-       var purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5&select=${sensorId}&key=${API_key}#14/${data.lat}/${data.lon}`;
-       console.log ('API key');
-    } else {
-       var purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5&select=${sensorId}#14/${data.lat}/${data.lon}`;
-       console.log ('no API key');
-    }
+    var purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5?key=${API_KEY}&select=${sensorId}#14/${data.lat}/${data.lon}`;
     listWidget.url = purpleMapUrl;
   } catch (error) {
     if (error === 666) {
