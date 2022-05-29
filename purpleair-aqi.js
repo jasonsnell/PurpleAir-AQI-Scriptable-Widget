@@ -220,7 +220,7 @@ async function getSensorData(sensorId) {
     // Check that our results are what we expect
     if (json && json.sensor) {
       console.log(`Sensor data looks good, will cache.`);
-      const sensorData = { json, last_seen: Date.now() }
+      const sensorData = { json, updatedAt: Date.now() }
       cacheData(sensorCache, sensorData);
     } else {
       const { json: cachedJson, updatedAt } = getCachedData(sensorCache);
@@ -466,7 +466,7 @@ function calculateLevel(aqi) {
  * @returns {string}
  */
 function getAQITrend({ 'pm2.5': partLive, 'pm2.5_10minute': partTime }) {
-    const partDelta = partTime - partLive;
+  const partDelta = partTime - partLive;
   if (partDelta > 5) return "arrow.down";
   if (partDelta < -5) return "arrow.up";
   return "";
@@ -489,8 +489,8 @@ async function run() {
   const listWidget = new ListWidget();
   listWidget.useDefaultPadding();
 
-try{
-  const sensorId = await getSensorId();
+  try {
+    const sensorId = await getSensorId();
 
     if (!sensorId) {
       throw "Please specify a location for this widget.";
