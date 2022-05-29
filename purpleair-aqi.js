@@ -17,7 +17,7 @@ const API_URL = "https://api.purpleair.com/";
  * and enter your READ KEY in the API key variable below.
  */
 
-const API_key = "your-api-key-goes-here";
+const API_KEY = "your-api-key-goes-here";
 
 /**
  * Find a nearby PurpleAir sensor ID via https://fire.airnow.gov/
@@ -206,10 +206,13 @@ function haversine(start, end) {
  */
 
 async function getSensorData(sensorId) {
+  if (!API_KEY) {
+    throw `Missing PurpleAir API Key`;
+  }
 
   const sensorCache = `sensor-${sensorId}-data.json`;
-     var req = new Request(`${API_URL}/v1/sensors/${sensorId}`);
-     req.headers = {"X-API-Key": API_key} ;
+  var req = new Request(`${API_URL}/v1/sensors/${sensorId}`);
+  req.headers = {"X-API-Key": API_KEY} ;
 
   let json = await req.loadJSON();
 
@@ -597,11 +600,7 @@ try{
     widgetText.minimumScaleFactor = 0.5;
 
     // TAP HANDLER
-	if (API_key) {
-     var purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5?key=${API_key}&select=${sensorId}#14/${data.lat}/${data.lon}`;
-  	} else {
-     var purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5?select=${sensorId}#14/${data.lat}/${data.lon}`;
-  	}
+    var purpleMapUrl = `https://www.purpleair.com/map?opt=1/i/mAQI/a10/cC5?key=${API_KEY}&select=${sensorId}#14/${data.lat}/${data.lon}`;
     listWidget.url = purpleMapUrl;
   } catch (error) {
     if (error === 666) {
