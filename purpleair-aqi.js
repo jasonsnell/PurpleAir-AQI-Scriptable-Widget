@@ -134,9 +134,10 @@ async function getSensorId() {
     const seLat = latitude - BOUND_OFFSET;
     const nwLng = longitude - BOUND_OFFSET;
     const seLng = longitude + BOUND_OFFSET;
-    const req = new Request(
+    var req = new Request(
       `${API_URL}/v1/sensors?fields=name,latitude,longitude,location_type&max_age=3600&location_type=0&nwlat=${nwLat}&selat=${seLat}&nwlng=${nwLng}&selng=${seLng}`
     );
+    req.headers = {"X-API-Key": API_KEY} ;
 
     /** @type {{ code?: number; results?: Array<Object<string, number|string>>; }} */
     const res = await req.loadJSON();
