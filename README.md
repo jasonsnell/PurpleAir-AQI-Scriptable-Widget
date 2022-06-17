@@ -20,6 +20,8 @@ You can run the script from within the app, or add a new Small widget on your ho
 
 PurpleAir **has changed its API**. This widget now requires a PurpleAir API key. If you don't have one, you'll need to request one from <https://www2.purpleair.com/pages/contact-us> and enter your READ KEY in the API key variable in the script.
 
+The widget is designed to use Location Services to find the nearest PurpleAir station to your location. If that's not working, you can specify a PurpleAir station manually by tapping and holding on the widget, choosing Edit Widget, and then entering the PurpleAir ID of the station you want to monitor in the Parameter field.
+
 ## How does this widget calculate AQI?
 
 This widget uses an EPA calculation designed for low-cost sensors like PurpleAir in areas where wood smoke is an issue, such as during wildfires. You can [read about the backstory here](https://thebolditalic.com/understanding-purpleair-vs-airnow-gov-measurements-of-wood-smoke-pollution-562923a55226) and [see the EPA document here](https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=349513&Lab=CEMM&simplesearch=0&showcriteria=2&sortby=pubDate&timstype=&datebeginpublishedpresented=08/25/2018).
