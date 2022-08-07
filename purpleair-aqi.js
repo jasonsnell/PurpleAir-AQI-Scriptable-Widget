@@ -190,6 +190,26 @@ function haversine(start, end) {
 }
 
 
+/**
+ * Replaces HTML entities with literal characters.
+ *
+ * The specific entities that are handled are "&lt;", "&gt;", and "&amp;".
+ *
+ * @param {string} htmlText
+ * @returns {string}
+ */
+function replaceHTMLEntities(htmlText) {
+    return htmlText.replace(/&(lt|gt|amp);/g, (_, entity) => {
+        if (entity === 'lt') {
+            return '<';
+        } else if (entity === 'gt') {
+            return '>';
+        } else if (entity === 'amp') {
+            return '&';
+        }
+    });
+}
+
 
 /**
  * Fetch content from PurpleAir
@@ -225,7 +245,7 @@ async function getSensorData(sensorId) {
       adj: json.sensor.stats["pm2.5_10minute"],
       ts: json.sensor.last_seen,
       hum: json.sensor.humidity,
-      loc: json.sensor.name,
+      loc: replaceHTMLEntities(json.sensor.name),
       lat: json.sensor.latitude,
       lon: json.sensor.longitude,
     };
