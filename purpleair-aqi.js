@@ -81,7 +81,7 @@ function getCachedData(fileName) {
 }
 
 /**
- * Wite JSON to a local file
+ * Write JSON to a local file
  *
  * @param {string} fileName
  * @param {object} data
