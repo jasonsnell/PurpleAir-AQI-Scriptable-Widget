@@ -242,7 +242,7 @@ async function getSensorData(sensorId) {
     }
     return {
       val: json.sensor,
-      adj: json.sensor.stats["pm2.5_cf_1"],
+      adj: json.sensor["pm2.5_cf_1"], // as of Sep 2023 Purple Air API has pm2.5_cf_1 at top level of JSON
       ts: json.sensor.last_seen,
       hum: json.sensor.humidity,
       loc: replaceHTMLEntities(json.sensor.name),
