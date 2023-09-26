@@ -4,13 +4,15 @@
 
 
 
-Project operated by Jason Snell <jsnell@sixcolors.com> with enormous contributions from Matt Silverlock, Rob Silverii, Adam Lickel, Alexander Ogilvie, Brian Donovan, Jon Sadka, and anonymous others!
+Project operated by Jason Snell <jsnell@sixcolors.com> with enormous contributions from Matt Silverlock, Rob Silverii, Adam Lickel, Alexander Ogilvie, Brian Donovan, Jon Sadka, bennywij, and anonymous others!
 
 ## About this project
 
 This project generates a widget that displays local air quality on the home screen of devices running iOS or iPadOS 14. It is displayed via the [Scriptable](https://scriptable.app) app by Simon Støvring.
 
 The widget uses data from the [PurpleAir network](https://www2.purpleair.com) of low-cost, consumer air quality sensors. While in America the EPA has a large, established network of sensors, the nearest sensor to you may not be experiencing the same conditions as you are, especially in extreme events such as wildfires. This widget exists because the nearest EPA sensor to me (Jason Snell) did not accurately reflect my local air quality during heavy wildfire smoke conditions. You can [read more about the origin of this project](https://sixcolors.com/post/2020/08/how-bad-is-the-air-out-there/) if you like.
+
+If you just want an app that does this, I recommend [Paku](http://paku.app). It's got a widget almost identical to this one, and you don't have to fuss with it! I wrote this widget before apps like Paku existed.
 
 ## How to use this
 
