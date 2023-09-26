@@ -380,19 +380,26 @@ const LEVEL_ATTRIBUTES = [
  * Get the EPA adjusted PPM
  *
  * @param {SensorData} sensorData
- * @returns {number} EPA adjustment for wood smoke and PurpleAir from slide 8 of https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=349513&Lab=CEMM&simplesearch=0&showcriteria=2&sortby=pubDate&timstype=&datebeginpublishedpresented=08/25/2018
+ * @returns {number} EPA adjustment for wood smoke and PurpleAir
  */
 function computePM(sensorData) {
   const dataAverage = Number.parseInt(sensorData.adj, 10);
   const hum = Number.parseInt(sensorData.hum, 10);
   console.log(`PM2.5 number is ${dataAverage}.`)
-//  if (dataAverage < 250) {
-//  console.log(`Using EPA calculation.`)
-    return 0.52 * dataAverage - 0.085 * hum + 5.71;
-//  } else {
-//   console.log(`Using AQANDU calculation.`)
-//   return .0778 * dataAverage + 2.65
-// }
+
+  // now a piecewise formula, revised by EPA in October 2021 as described here https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=353088&Lab=CEMM
+  // direct download to PDFhttps://cfpub.epa.gov/si/si_public_file_download.cfm?p_download_id=544231&Lab=CEMM -- slide 26 has formula
+  if (dataAverage < 30) {
+    return 0.524*dataAverage - 0.0862*hum + 5.75;
+    } else if (30 <= dataAverage < 50) {
+      return (0.786 * (dataAverage/20 - 3/2) + 0.524*(1 - (dataAverage/20 - 3/2)))*dataAverage - 0.0862*hum + 5.75;
+    } else if (50 <= dataAverage < 210) {
+      return 0.786*dataAverage - 0.0862*hum + 5.75;  
+    } else if (210 <= dataAverage < 260) {
+      return (0.69*(dataAverage/50 - 21/5) + 0.786*(1 - (dataAverage/50 - 21/5)))*dataAverage - 0.0862*hum*(1 - (dataAverage/50 - 21/5)) + 2.966*(pm/50 - 21/5) + 5.75*(1 - (dataAverage/50 - 21/5)) + 8.84*(10**-4)*dataAverage**2*(dataAverage/50 - 21/5);
+    } else if (260 <= dataAverage) {    
+      return 2.966 + 0.69*dataAverage + 8.84*10**-4*dataAverage**2; 
+    }
 }
 
 /**
