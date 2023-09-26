@@ -189,28 +189,6 @@ function haversine(start, end) {
   return 2 * Math.atan2(Math.sqrt(angle), Math.sqrt(1 - angle));
 }
 
-
-/**
- * Replaces HTML entities with literal characters.
- *
- * The specific entities that are handled are "&lt;", "&gt;", and "&amp;".
- *
- * @param {string} htmlText
- * @returns {string}
- */
-function replaceHTMLEntities(htmlText) {
-    return htmlText.replace(/&(lt|gt|amp);/g, (_, entity) => {
-        if (entity === 'lt') {
-            return '<';
-        } else if (entity === 'gt') {
-            return '>';
-        } else if (entity === 'amp') {
-            return '&';
-        }
-    });
-}
-
-
 /**
  * Fetch content from PurpleAir
  *
@@ -245,7 +223,7 @@ async function getSensorData(sensorId) {
       adj: json.sensor["pm2.5_cf_1"], // as of Sep 2023 Purple Air API has pm2.5_cf_1 at top level of JSON
       ts: json.sensor.last_seen,
       hum: json.sensor.humidity,
-      loc: replaceHTMLEntities(json.sensor.name),
+      loc: json.sensor.name,
       lat: json.sensor.latitude,
       lon: json.sensor.longitude,
     };
