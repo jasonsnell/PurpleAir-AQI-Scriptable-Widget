@@ -366,18 +366,20 @@ function computePM(sensorData) {
   console.log(`PM2.5 number is ${dataAverage}.`)
 
   // now a piecewise formula, revised by EPA in October 2021 as described here https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=353088&Lab=CEMM
-  // direct download to PDFhttps://cfpub.epa.gov/si/si_public_file_download.cfm?p_download_id=544231&Lab=CEMM -- slide 26 has formula
+  // direct download to PDF https://cfpub.epa.gov/si/si_public_file_download.cfm?p_download_id=544231&Lab=CEMM -- slide 26 has formula
+
   if (dataAverage < 30) {
     return 0.524*dataAverage - 0.0862*hum + 5.75;
-    } else if (30 <= dataAverage < 50) {
+    } else if (30 <= dataAverage && dataAverage < 50) {
       return (0.786 * (dataAverage/20 - 3/2) + 0.524*(1 - (dataAverage/20 - 3/2)))*dataAverage - 0.0862*hum + 5.75;
-    } else if (50 <= dataAverage < 210) {
+    } else if (50 <= dataAverage && dataAverage < 210) {
       return 0.786*dataAverage - 0.0862*hum + 5.75;  
-    } else if (210 <= dataAverage < 260) {
-      return (0.69*(dataAverage/50 - 21/5) + 0.786*(1 - (dataAverage/50 - 21/5)))*dataAverage - 0.0862*hum*(1 - (dataAverage/50 - 21/5)) + 2.966*(pm/50 - 21/5) + 5.75*(1 - (dataAverage/50 - 21/5)) + 8.84*(10**-4)*dataAverage**2*(dataAverage/50 - 21/5);
+    } else if (210 <= dataAverage && dataAverage < 260) {
+      return (0.69*(dataAverage/50 - 21/5) + 0.786*(1 - (dataAverage/50 - 21/5)))*dataAverage - 0.0862*hum*(1 - (dataAverage/50 - 21/5)) + 2.966*(dataAverage/50 - 21/5) + 5.75*(1 - (dataAverage/50 - 21/5)) + 8.84*(10**-4)*dataAverage**2*(dataAverage/50 - 21/5);
     } else if (260 <= dataAverage) {    
       return 2.966 + 0.69*dataAverage + 8.84*10**-4*dataAverage**2; 
     }
+  
 }
 
 /**
